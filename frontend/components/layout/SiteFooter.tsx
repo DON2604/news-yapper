@@ -1,4 +1,5 @@
 import { Mascot } from "@/components/design-system/stickers";
+import { BackendStatus } from "@/components/layout/BackendStatus";
 
 export function SiteFooter() {
   return (
@@ -16,9 +17,12 @@ export function SiteFooter() {
             review.
           </p>
         </div>
-        <p className="border-t border-cream/20 pt-5 text-sm text-cream/85 md:col-span-2">
-          Made with love by <span className="font-display font-bold text-mango">Mrinmay</span> 🥰
-        </p>
+        <div className="flex flex-col gap-3 border-t border-cream/20 pt-5 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
+          <p className="text-sm text-cream/85">
+            Made with love by <span className="font-display font-bold text-mango">Mrinmay</span> 🥰
+          </p>
+          <BackendStatus />
+        </div>
       </div>
     </footer>
   );
