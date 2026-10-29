@@ -4,23 +4,23 @@
 
 ```mermaid
 flowchart LR
-  B[Browser] -->|session cookie| W[Next.js app<br/>apps/web]
-  W -->|"short-lived HS256 token<br/>(server-side only)"| A[FastAPI<br/>apps/api]
+  B[Browser] -->|session cookie| W[Next.js app<br/>frontend]
+  W -->|"short-lived HS256 token<br/>(server-side only)"| A[FastAPI<br/>backend/api]
   A --> P[(PostgreSQL<br/>Neon / local)]
-  K[Worker coordinator<br/>apps/worker] --> P
+  K[Worker coordinator<br/>backend/worker] --> P
   K -->|"RSS / GDELT<br/>(SSRF-guarded)"| S[Official feeds<br/>& discovery APIs]
   K -->|"only via AIOrchestrator"| G[Gemini]
   K -->|"only via AIOrchestrator"| Q[Groq]
 ```
 
-* **apps/web** - Next.js App Router. Server components fetch FastAPI with a freshly minted
+* **frontend** - Next.js App Router. Server components fetch FastAPI with a freshly minted
   5-minute token (`lib/server/token.ts`). Client components call the same-origin proxy
   `/api/backend/*`, which allow-lists API areas, rejects cross-site writes (Origin /
   `Sec-Fetch-Site`) and attaches the token. The browser never sees an API token or AI key.
-* **apps/api** - FastAPI + SQLAlchemy 2 + Alembic + psycopg 3. Owns users, content and all
+* **backend/api** - FastAPI + SQLAlchemy 2 + Alembic + psycopg 3. Owns users, content and all
   private study data. Every private query is scoped by `user_id` in the service layer; foreign
   IDs return 404 (no existence leaks). Admin rights are read from the database per request.
-* **apps/worker** - the single project-wide coordinator: ingestion, clustering, relevance,
+* **backend/worker** - the single project-wide coordinator: ingestion, clustering, relevance,
   AI job processing, offline Crunch and daily editions. A lease row (`worker_leases`)
   guarantees one active coordinator even across redeploys and through Neon's pooler.
 * **PostgreSQL** - the only stateful dependency: content, user data, the AI job queue,
@@ -136,14 +136,14 @@ mistakes, and bullets / `term: definition` cards from notes; every item keeps re
 
 ## Spaced repetition
 
-SM-2-inspired (`app/services/srs.py`, mirrored in `apps/web/lib/srs.ts` for button labels):
+SM-2-inspired (`app/services/srs.py`, mirrored in `frontend/lib/srs.ts` for button labels):
 *again* → relearn in 10 min, ease −0.2; *hard* → half the good interval, ease −0.15;
 *good* → 1 d, 6 d, then interval × ease; *easy* → good × 1.3, ease +0.1; ease ∈ [1.3, 3.0],
 intervals ≤ 365 d.
 
 ## Data model
 
-All tables from plan section 5 exist in `apps/api/alembic/versions/0001_initial_schema.py`
+All tables from plan section 5 exist in `backend/api/alembic/versions/0001_initial_schema.py`
 (UUID keys, UTC timestamps, CHECK constraints for enums and `correct_index BETWEEN 0 AND 3`,
 the partial unique index on `article_snapshots(user_id, article_id)`, per-user indexes).
 Deviations, all additive: `ai_usage` is unique on `(job_id, attempt_no)` so a job may record

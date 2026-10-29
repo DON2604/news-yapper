@@ -30,6 +30,7 @@ from pipeline.ai_orchestrator import AIOrchestrator, default_owner
 from pipeline.editions import build_edition
 from pipeline.generate import plan_news_jobs
 from pipeline.ingest import run_ingestion
+from pipeline.quiz_rag import plan_quiz_jobs
 
 log = logging.getLogger("aks.worker")
 LEASE_NAME = "coordinator"
@@ -138,6 +139,7 @@ class Coordinator:
                 self.last_edition = None
         with SessionLocal() as db:
             report["planned_news_jobs"] = plan_news_jobs(db, self.settings, now)
+            report["planned_quiz_jobs"] = plan_quiz_jobs(db, self.settings, now)
         report["jobs"] = [o.status for o in self.orchestrator.run_once(max_jobs=3)]
         if self.last_edition is None or now - self.last_edition >= EDITION_EVERY or report["jobs"]:
             with SessionLocal() as db:
@@ -171,7 +173,13 @@ class Coordinator:
                         report = self.tick()
                         if any(
                             report.get(k)
-                            for k in ("ingested", "planned_news_jobs", "jobs", "admin_ingestion_runs")
+                            for k in (
+                                "ingested",
+                                "planned_news_jobs",
+                                "planned_quiz_jobs",
+                                "jobs",
+                                "admin_ingestion_runs",
+                            )
                         ):
                             log.info("tick: %s", report)
                     except Exception:  # noqa: BLE001 - keep the coordinator alive

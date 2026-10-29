@@ -81,8 +81,9 @@ export function DailyQuiz({ initial }: { initial: DailyQuizData }) {
             </li>
           </ul>
           <p className="max-w-lg text-ink/80">
-            Picked for you from weak topics, recent mistakes and fresh current affairs. No negative marking, no streak
-            shaming - bhul hole Mistake Vault-e chole jabe, porer bar thik hobe.
+            Picked for you from weak topics, recent mistakes and fresh current affairs. Questions are retrieved from
+            stories already saved in the database, so opening this page reads that saved set. Bhul hole Mistake Vault-e
+            chole jabe, porer bar thik hobe.
           </p>
           <CandyButton tone="ink" size="lg" onClick={start} disabled={starting}>
             {starting ? "Setting up..." : "Start quiz"} <ArrowRight className="size-5" aria-hidden="true" />

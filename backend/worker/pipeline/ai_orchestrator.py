@@ -31,6 +31,7 @@ from app.config import Settings
 from app.models import AIJob, AIUsage, utcnow
 from app.services.clock import tz
 from pipeline.ai_types import JobHandler, Prepared, ResourceGone
+from pipeline.article_chat import ArticleChatHandler
 from pipeline.crunch import CrunchHandler
 from pipeline.generate import NewsBatchHandler
 from pipeline.job_queue import JobQueue
@@ -43,6 +44,7 @@ from pipeline.providers.base import (
 )
 from pipeline.providers.gemini import GeminiProvider
 from pipeline.providers.groq import GroqProvider
+from pipeline.quiz_rag import QuizRagHandler
 from pipeline.quota_manager import Denial, QuotaManager
 from pipeline.validate import OutputRejected
 
@@ -98,6 +100,8 @@ class AIOrchestrator:
         self.handlers: dict[str, JobHandler] = handlers or {
             "news_batch": NewsBatchHandler(settings),
             "crunch": CrunchHandler(settings),
+            "quiz_prep": QuizRagHandler(settings),
+            "article_chat": ArticleChatHandler(settings),
         }
 
     # -- scheduling ------------------------------------------------------------

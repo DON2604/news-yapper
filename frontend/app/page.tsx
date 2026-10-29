@@ -58,6 +58,12 @@ export default async function HomePage() {
           <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
             {greeting(session?.user?.name)} <span className="marker">{glueSuffixes("Aajke-r cha ready")}</span> ☕
           </h1>
+          <p className="mt-2 max-w-xl text-sm font-medium text-ink-soft">
+            Banglish stories stay saved in the database. A refresh reads that saved copy.{" "}
+            <Link href="/news" className="font-bold text-ink underline">
+              Purono din-er scene
+            </Link>
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StickerBadge tone="mint" tilt={-1.5}>

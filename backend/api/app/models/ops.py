@@ -25,7 +25,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, Timestamps, UUIDPk, in_check, utcnow
 
-AI_JOB_KINDS = ("news_batch", "crunch", "quiz_prep", "classification")
+AI_JOB_KINDS = ("news_batch", "crunch", "quiz_prep", "classification", "article_chat")
 AI_JOB_STATUSES = ("queued", "running", "deferred", "succeeded", "failed", "dead_letter", "cancelled")
 USAGE_OUTCOMES = (
     "reserved",

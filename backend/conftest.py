@@ -74,7 +74,7 @@ def migrated_database() -> Iterator[None]:
         conn.execute("DROP SCHEMA public CASCADE")
         conn.execute("CREATE SCHEMA public")
     root = os.path.dirname(os.path.abspath(__file__))
-    cfg = Config(os.path.join(root, "apps", "api", "alembic.ini"))
+    cfg = Config(os.path.join(root, "api", "alembic.ini"))
     command.upgrade(cfg, "head")
     yield
     get_engine().dispose()

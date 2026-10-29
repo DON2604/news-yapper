@@ -23,7 +23,7 @@ describe("SM-2 preview mirrors the server schedule", () => {
   const fresh = { ease_factor: 2.5, interval_days: 0, repetitions: 0 };
   const second = { ease_factor: 2.5, interval_days: 6, repetitions: 2 };
 
-  it("matches apps/api/tests sm2 progression", () => {
+  it("matches backend/api/tests sm2 progression", () => {
     expect(nextIntervalDays(fresh, "good")).toBe(1);
     expect(nextIntervalDays({ ...fresh, interval_days: 1, repetitions: 1 }, "good")).toBe(6);
     expect(nextIntervalDays(second, "good")).toBe(15);

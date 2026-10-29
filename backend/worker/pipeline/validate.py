@@ -294,3 +294,107 @@ def validate_crunch(data: dict[str, Any], allowed_refs: set[str], max_flashcards
     if len(out.flashcards) > max_flashcards:
         out.flashcards = out.flashcards[:max_flashcards]
     return ValidatedCrunch(output=out, warnings=warnings)
+
+
+class RagQuestionOut(BaseModel):
+    article_id: str
+    prompt: str = Field(min_length=10, max_length=300)
+    options: list[str] = Field(min_length=4, max_length=4)
+    correct_index: int = Field(ge=0, le=3)
+    explanation: str = Field(min_length=10, max_length=500)
+
+    @field_validator("options")
+    @classmethod
+    def _options(cls, value: list[str]) -> list[str]:
+        cleaned = [v.strip() for v in value]
+        if any(not v or len(v) > 160 for v in cleaned):
+            raise ValueError("options must be 1-160 chars")
+        if len({v.lower() for v in cleaned}) != 4:
+            raise ValueError("options must be unique")
+        return cleaned
+
+
+class RagQuizBatchOut(BaseModel):
+    questions: list[RagQuestionOut] = Field(min_length=1, max_length=8)
+
+
+class ChatAnswerOut(BaseModel):
+    answer: str = Field(min_length=20, max_length=900)
+
+
+@dataclass
+class StoredCorpus:
+    article_id: str
+    text: str
+    sensitive: bool
+
+
+@dataclass
+class AcceptedQuizQuestion:
+    article_id: str
+    prompt: str
+    options: list[str]
+    correct_index: int
+    explanation: str
+
+
+def _too_casual(text: str, sensitive: bool) -> bool:
+    if not sensitive:
+        return False
+    lowered = text.lower()
+    return bool(_EMOJI.search(text)) or any(word in lowered.split() for word in SLANG)
+
+
+def validate_quiz_rag(data: dict[str, Any], corpora: dict[str, StoredCorpus]) -> list[AcceptedQuizQuestion]:
+    try:
+        batch = RagQuizBatchOut.model_validate(data)
+    except ValidationError as exc:
+        raise OutputRejected(f"Schema validation failed: {exc.error_count()} errors") from exc
+    accepted: list[AcceptedQuizQuestion] = []
+    for item in batch.questions:
+        corpus = corpora.get(item.article_id)
+        if corpus is None:
+            continue
+        answer = item.options[item.correct_index]
+        grounded = " ".join([item.prompt, answer, item.explanation])
+        if unsupported_numbers(grounded, corpus.text):
+            continue
+        if _too_casual(item.prompt, corpus.sensitive) or _too_casual(item.explanation, corpus.sensitive):
+            continue
+        if (
+            overlap_ratio(item.explanation, corpus.text) < 0.3
+            and overlap_ratio(item.prompt, corpus.text) < 0.3
+        ):
+            continue
+        accepted.append(
+            AcceptedQuizQuestion(
+                article_id=item.article_id,
+                prompt=item.prompt.strip(),
+                options=item.options,
+                correct_index=item.correct_index,
+                explanation=item.explanation.strip(),
+            )
+        )
+    if not accepted:
+        raise OutputRejected("No quiz question was supported by the saved stories")
+    return accepted
+
+
+_URL = re.compile(r"https?://[^\s)>\"]+")
+
+
+def validate_chat_answer(data: dict[str, Any], corpus: str, *, sensitive: bool) -> str:
+    try:
+        out = ChatAnswerOut.model_validate(data)
+    except ValidationError as exc:
+        raise OutputRejected(f"Schema validation failed: {exc.error_count()} errors") from exc
+    answer = out.answer.strip()
+    if unsupported_numbers(answer, corpus):
+        raise OutputRejected("Answer cites numbers that are not in the saved stories")
+    if _too_casual(answer, sensitive):
+        raise OutputRejected("Sensitive story reply used a casual tone")
+    allowed = {u.rstrip(".,)") for u in _URL.findall(corpus)}
+    extra = {u.rstrip(".,)") for u in _URL.findall(answer)} - allowed
+    if extra:
+        raise OutputRejected("Answer cited a link that is not in the saved stories")
+    return answer

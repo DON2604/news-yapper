@@ -1,7 +1,7 @@
 # Shared schemas
 
 JSON Schemas for the structured AI output contracts, generated from the Pydantic
-validators in `apps/worker/pipeline/validate.py` (the single source of truth):
+validators in `backend/worker/pipeline/validate.py` (the single source of truth):
 
 | File | Used for |
 |---|---|

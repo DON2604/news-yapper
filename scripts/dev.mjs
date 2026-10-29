@@ -21,7 +21,7 @@ function step(label, cmd, args) {
 }
 
 if (!env.DATABASE_URL) {
-  console.error('DATABASE_URL is empty. Run "npm run setup" (local Postgres) or paste your Neon URL into .env.');
+  console.error('DATABASE_URL is empty. Paste your Neon pooled URL into .env (see LOCAL_SETUP.md).');
   process.exit(1);
 }
 
@@ -29,16 +29,16 @@ const localPort = env.LOCAL_PG_PORT || '54329';
 if (/@(127\.0\.0\.1|localhost):/.test(env.DATABASE_URL) && env.DATABASE_URL.includes(`:${localPort}/`)) {
   step('Starting local Postgres', process.execPath, ['scripts/local-postgres.mjs', 'start']);
 }
-step('Applying migrations', 'uv', ['run', 'alembic', '-c', 'apps/api/alembic.ini', 'upgrade', 'head']);
+step('Applying migrations', 'uv', ['--directory', 'backend', 'run', 'alembic', '-c', 'api/alembic.ini', 'upgrade', 'head']);
 if ((env.DEMO_MODE ?? 'true').toLowerCase() === 'true') {
-  step('Seeding demo content (idempotent)', 'uv', ['run', 'python', '-m', 'app.cli', 'seed-demo']);
+  step('Seeding demo content (idempotent)', 'uv', ['--directory', 'backend', 'run', 'python', '-m', 'app.cli', 'seed-demo']);
 }
 
 const colors = { api: '\x1b[35m', worker: '\x1b[36m', web: '\x1b[33m' };
 const services = [
-  ['api', 'uv', ['run', 'uvicorn', 'app.main:app', '--reload', '--reload-dir', 'apps/api/app', '--host', '127.0.0.1', '--port', '8000']],
-  ['worker', 'uv', ['run', 'python', '-m', 'worker', 'run']],
-  ['web', npm, ['run', 'dev', '--workspace', 'apps/web']],
+  ['api', 'uv', ['--directory', 'backend', 'run', 'uvicorn', 'app.main:app', '--reload', '--reload-dir', 'api/app', '--host', '127.0.0.1', '--port', '8000']],
+  ['worker', 'uv', ['--directory', 'backend', 'run', 'python', '-m', 'worker', 'run']],
+  ['web', npm, ['run', 'dev', '--workspace', 'frontend']],
 ];
 
 const children = services.map(([name, cmd, args]) => {

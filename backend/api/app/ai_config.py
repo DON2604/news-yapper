@@ -14,7 +14,7 @@ from typing import Any
 
 from app.config import Settings
 
-TASKS = ("news_batch", "crunch", "quiz_prep", "classification")
+TASKS = ("news_batch", "crunch", "quiz_prep", "classification", "article_chat")
 
 
 @dataclass(frozen=True)
@@ -177,6 +177,12 @@ DEFAULT_ROUTING: dict[str, dict[str, Any]] = {
         "max_input_tokens": 3000,
         "max_output_tokens": 600,
         "min_quality": "basic",
+    },
+    "article_chat": {
+        "candidates": [["gemini", "default"], ["groq", "quality"], ["groq", "fallback"]],
+        "max_input_tokens": 4000,
+        "max_output_tokens": 800,
+        "min_quality": "high",
     },
 }
 

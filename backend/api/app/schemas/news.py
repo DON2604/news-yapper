@@ -73,6 +73,16 @@ class NewsPage(BaseModel):
     total: int
 
 
+class ArchiveDay(BaseModel):
+    date: date
+    story_count: int
+    ai_count: int
+
+
+class NewsArchive(BaseModel):
+    dates: list[ArchiveDay]
+
+
 class EditionOut(BaseModel):
     id: uuid.UUID | None
     edition_date: date

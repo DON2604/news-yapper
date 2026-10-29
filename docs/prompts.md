@@ -1,6 +1,6 @@
 # Prompts and output contracts
 
-Prompts live in `apps/worker/pipeline/prompts.py` and are versioned. The version is stored on
+Prompts live in `backend/worker/pipeline/prompts.py` and are versioned. The version is stored on
 every generated article (`articles.prompt_version`), question (`generation_version`) and Crunch
 output, and is part of the content hash / Crunch digest - changing a prompt means bumping its
 version.

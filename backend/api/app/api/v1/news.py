@@ -3,11 +3,13 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 
-from app.schemas.news import ArticleDetail, EditionOut, NewsPage
-from app.security.auth import DB, OptionalUser
+from app.schemas.chat import ChatAskIn, ChatThreadOut
+from app.schemas.news import ArticleDetail, EditionOut, NewsArchive, NewsPage
+from app.security.auth import DB, CurrentUser, OptionalUser
 from app.security.rate_limit import rate_limit
+from app.services import chat as chat_service
 from app.services import news as news_service
 
 router = APIRouter(tags=["news"], dependencies=[Depends(rate_limit("news", 240))])
@@ -42,6 +44,27 @@ def list_news(
         cursor=cursor,
         limit=limit,
     )
+
+
+@router.get("/news/archive", response_model=NewsArchive)
+def archive(db: DB, demo: bool | None = None) -> NewsArchive:
+    return news_service.list_archive(db, include_demo=demo)
+
+
+@router.get("/news/{slug}/chat", response_model=ChatThreadOut)
+def get_chat(slug: str, db: DB, user: CurrentUser) -> ChatThreadOut:
+    return chat_service.get_thread(db, user, slug)
+
+
+@router.post(
+    "/news/{slug}/chat",
+    response_model=ChatThreadOut,
+    dependencies=[Depends(rate_limit("article_chat", 20, 3600))],
+)
+def post_chat(slug: str, payload: ChatAskIn, response: Response, db: DB, user: CurrentUser) -> ChatThreadOut:
+    thread, queued = chat_service.ask(db, user, slug, payload.message)
+    response.status_code = 202 if queued else 200
+    return thread
 
 
 @router.get("/news/{slug}", response_model=ArticleDetail)

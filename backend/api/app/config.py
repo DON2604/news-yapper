@@ -7,6 +7,7 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+_ENV_FILE = REPO_ROOT / ".env"
 
 _OPTIONAL_NUMBERS = (
     "gemini_rpm_budget",
@@ -21,7 +22,7 @@ _OPTIONAL_NUMBERS = (
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=REPO_ROOT / ".env",
+        env_file=str(_ENV_FILE) if _ENV_FILE.is_file() else None,
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,

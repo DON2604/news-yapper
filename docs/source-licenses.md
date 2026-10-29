@@ -25,7 +25,7 @@ was checked during development (2026-10-29), not legal advice.
 
 ## DEMO content
 
-`apps/api/app/seed/demo.py` contains 13 hand-written explainers about well-documented past
+`backend/api/app/seed/demo.py` contains 13 hand-written explainers about well-documented past
 events plus 31 static GK questions. They are labelled DEMO in the API (`is_demo`) and the UI.
 Each explainer links to an official or reference page that returned HTTP 200 on 2026-10-29,
 except the Olympics page (olympics.com was unreachable from the dev network; recorded in the

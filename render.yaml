@@ -1,0 +1,57 @@
+# Render Blueprint. Root Directory for both services is backend/.
+# Fill the secret values in the dashboard. Do not put real keys in this file.
+services:
+  - type: web
+    name: news-yapper-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: uv sync --frozen
+    preDeployCommand: uv run alembic -c api/alembic.ini upgrade head
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: API_JWT_SECRET
+        sync: false
+      - key: APP_BASE_URL
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "true"
+
+  - type: worker
+    name: news-yapper-worker
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: uv sync --frozen
+    startCommand: uv run python -m worker run
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: API_JWT_SECRET
+        sync: false
+      - key: APP_BASE_URL
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "true"
+      - key: ENABLE_GEMINI
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ENABLE_GROQ
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

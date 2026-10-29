@@ -3,7 +3,7 @@ import path from "node:path";
 import { type Page, test } from "@playwright/test";
 
 // Visual QA: full-page screenshots of every designed screen at 375 / 768 / 1440 px.
-const OUT = path.resolve(__dirname, "../../../docs/screenshots");
+const OUT = path.resolve(__dirname, "../../docs/screenshots");
 const WIDTHS = (process.env.SCREEN_WIDTHS ?? "375,768,1440").split(",").map(Number);
 const ROUTES: Record<string, string> = {
   home: "/",

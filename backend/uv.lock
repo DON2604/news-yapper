@@ -31,8 +31,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aks-api", editable = "apps/api" },
-    { name = "aks-worker", editable = "apps/worker" },
+    { name = "aks-api", editable = "api" },
+    { name = "aks-worker", editable = "worker" },
 ]
 
 [package.metadata.requires-dev]
@@ -45,7 +45,7 @@ dev = [
 [[package]]
 name = "aks-api"
 version = "0.1.0"
-source = { editable = "apps/api" }
+source = { editable = "api" }
 dependencies = [
     { name = "alembic" },
     { name = "fastapi" },
@@ -78,7 +78,7 @@ requires-dist = [
 [[package]]
 name = "aks-worker"
 version = "0.1.0"
-source = { editable = "apps/worker" }
+source = { editable = "worker" }
 dependencies = [
     { name = "aks-api" },
     { name = "feedparser" },
@@ -87,7 +87,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aks-api", editable = "apps/api" },
+    { name = "aks-api", editable = "api" },
     { name = "feedparser", specifier = ">=6.0.11" },
     { name = "httpx", specifier = ">=0.27" },
 ]

@@ -115,9 +115,9 @@ These percentages are design intent, not hard layout formulas. **Color on all pa
 
 **Chosen simple and deployable starting architecture:**
 
-- `apps/web`: Next.js App Router + TypeScript + Tailwind, responsive components, PWA optional later.
-- `apps/api`: FastAPI + Pydantic + SQLAlchemy 2 + Alembic + psycopg; authenticates requests, serves news/notes/quizzes/revision, provides protected admin endpoints.
-- `apps/worker`: Python worker services for RSS/GDELT ingestion, dedupe, generation and daily quiz creation. Initially only **one AI scheduling process** for the whole project. Use a Neon-backed jobs/outbox table and leases to avoid additional Redis infrastructure in the MVP. If scale demands it later, introduce Redis/Celery, but retain the single project-wide quota coordinator.
+- `frontend`: Next.js App Router + TypeScript + Tailwind, responsive components, PWA optional later. Host on Vercel.
+- `backend/api`: FastAPI + Pydantic + SQLAlchemy 2 + Alembic + psycopg; authenticates requests, serves news/notes/quizzes/revision, provides protected admin endpoints. Host on Render.
+- `backend/worker`: Python worker services for RSS/GDELT ingestion, dedupe, generation and daily quiz creation. Host as a second Render service from the same `backend` folder. Initially only **one AI scheduling process** for the whole project. Use a Neon-backed jobs/outbox table and leases to avoid additional Redis infrastructure in the MVP. If scale demands it later, introduce Redis/Celery, but retain the single project-wide quota coordinator.
 - `Neon Postgres`: canonical data store. Use pooled `DATABASE_URL` for normal runtime, direct `DIRECT_URL` for migrations; secrets server-side only.
 - `Google Gemini API`: primary source-grounded structured JSON generation and Crunch. Select a currently supported model via config after checking your real account quotas. `GEMINI_API_KEY` only on the server.
 - `Groq API`: independent provider for access to multiple hosted LLMs, low-latency rewriting, classification and fallback where the selected Groq model meets task-quality and structured-output requirements. Use the official Groq API or its OpenAI-compatible base URL, and discover currently available model IDs from the Groq Models endpoint. `GROQ_API_KEY` stays server-side. Groq is a separate provider with its own organization-level free-plan limits; never assume unlimited free calls.

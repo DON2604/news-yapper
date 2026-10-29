@@ -1,4 +1,4 @@
-// Mirrors the FastAPI Pydantic contracts in apps/api/app/schemas.
+// Mirrors the FastAPI Pydantic contracts in backend/api/app/schemas.
 
 export type Category =
   | "polity"
@@ -69,6 +69,32 @@ export interface NewsPage {
   items: NewsItem[];
   next_cursor: string | null;
   total: number;
+}
+
+export interface ArchiveDay {
+  date: string;
+  story_count: number;
+  ai_count: number;
+}
+
+export interface NewsArchive {
+  dates: ArchiveDay[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  body: string;
+  status: "ready" | "pending" | "failed";
+  cached: boolean;
+  created_at: string;
+}
+
+export interface ChatThread {
+  available: boolean;
+  serious: boolean;
+  pending: boolean;
+  messages: ChatMessage[];
 }
 
 export interface Edition {

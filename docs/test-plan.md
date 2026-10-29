@@ -7,10 +7,10 @@
 | API + worker (pytest) | `uv run pytest` | 101 (+1 opt-in live) | Postgres at `TEST_DATABASE_URL` (wiped per test) |
 | Live feed check | `uv run python scripts/live_ingestion_check.py rbi-press un-news pib gdelt` | 1 real ingestion | Network; uses a temporary database |
 | Python lint / types | `npm run lint:py`, `npm run typecheck:py` | ruff, ruff format, mypy (75 files) | - |
-| Web unit (Vitest + Testing Library) | `npm run test --workspace apps/web` | 8 | - |
-| Web lint / types / build | `npm run lint --workspace apps/web`, `npm run typecheck --workspace apps/web`, `npm run build --workspace apps/web` | ESLint, tsc, `next build` | - |
+| Web unit (Vitest + Testing Library) | `npm run test --workspace frontend` | 8 | - |
+| Web lint / types / build | `npm run lint --workspace frontend`, `npm run typecheck --workspace frontend`, `npm run build --workspace frontend` | ESLint, tsc, `next build` | - |
 | End-to-end (Playwright) | `npm run test:e2e` | 2 | Full stack (auto-started) |
-| Visual QA | `npm run screenshots --workspace apps/web` | 12 screens × 3 widths (+ interactive states with `SCREEN_FLOWS=1`) | Full stack |
+| Visual QA | `npm run screenshots --workspace frontend` | 12 screens × 3 widths (+ interactive states with `SCREEN_FLOWS=1`) | Full stack |
 
 The pytest session drops and recreates the test schema by running the Alembic migration, so
 every run also proves the migration from an empty database.

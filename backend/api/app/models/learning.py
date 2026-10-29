@@ -272,6 +272,58 @@ class Flashcard(UUIDPk, Timestamps, Base):
     suspended: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
 
 
+CHAT_ROLES = ("user", "assistant")
+CHAT_MESSAGE_STATUSES = ("ready", "pending", "failed")
+
+
+class ArticleChat(UUIDPk, Timestamps, Base):
+    """One thread per user per saved article. Answers are grounded in stored news."""
+
+    __tablename__ = "article_chats"
+    __table_args__ = (UniqueConstraint("user_id", "article_id"),)
+
+    user_id: Mapped[uuid.UUID] = _user_fk()
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("articles.id", ondelete="CASCADE"), index=True
+    )
+
+
+class ArticleChatMessage(UUIDPk, Base):
+    __tablename__ = "article_chat_messages"
+    __table_args__ = (
+        CheckConstraint(in_check("role", CHAT_ROLES), name="role_valid"),
+        CheckConstraint(in_check("status", CHAT_MESSAGE_STATUSES), name="status_valid"),
+        Index("ix_article_chat_messages_chat_created", "chat_id", "created_at"),
+    )
+
+    chat_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("article_chats.id", ondelete="CASCADE"), index=True
+    )
+    role: Mapped[str] = mapped_column(String(16))
+    body: Mapped[str] = mapped_column(Text, default="", server_default="")
+    status: Mapped[str] = mapped_column(String(16), default="ready", server_default="ready")
+    cached: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class ArticleChatCache(UUIDPk, Base):
+    """Shared answer cache keyed by article + normalised question. Repeat asks skip the model."""
+
+    __tablename__ = "article_chat_cache"
+    __table_args__ = (UniqueConstraint("article_id", "question_hash"),)
+
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("articles.id", ondelete="CASCADE"), index=True
+    )
+    question_hash: Mapped[str] = mapped_column(String(64))
+    answer: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
 class FlashcardReview(UUIDPk, Base):
     __tablename__ = "flashcard_reviews"
     __table_args__ = (CheckConstraint(in_check("outcome", REVIEW_OUTCOMES), name="outcome_valid"),)

@@ -35,7 +35,7 @@ def get_engine(url: str | None = None) -> Engine:
     raw = url or get_settings().database_url
     if not raw:
         raise RuntimeError(
-            "DATABASE_URL is not configured. Run `npm run setup` for local Postgres or set your Neon URL in .env."
+            "DATABASE_URL is not configured. Set your Neon URL in .env or in the host's environment."
         )
     normalized = normalize_database_url(raw)
     return create_engine(

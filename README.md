@@ -39,22 +39,31 @@ Gemini/Groq keys were available, so no real model call has been made.
 
 ## Quick start (Windows, macOS, Linux)
 
-Prerequisites: **Node.js 20.9+** and **[uv](https://docs.astral.sh/uv/)** (uv installs
-Python for you). No credentials are needed for DEMO mode.
+The app runs on your machine and stores data in **Neon**. It does not use a Postgres
+install on the computer. Step-by-step clone instructions are in [`LOCAL_SETUP.md`](LOCAL_SETUP.md).
+
+Prerequisites: **Node.js 20.9+**, **[uv](https://docs.astral.sh/uv/)** (uv installs Python
+for you), and a Neon project. No AI credentials are needed for DEMO mode.
 
 ```bash
-npm install          # web app + embedded Postgres binaries
+npm install          # web app
 uv sync              # API + worker Python environment
-npm run setup        # creates .env with generated local secrets
-npm run dev          # local Postgres -> migrations -> demo seed -> API + worker + web
+npm run setup        # creates .env with generated secrets
+```
+
+`npm run setup` fills an empty `DATABASE_URL` with a local address. Before `npm run dev`,
+replace `DATABASE_URL` with the Neon **pooled** URL (host contains `-pooler`) and
+`DIRECT_URL` with the Neon **direct** URL. Then:
+
+```bash
+npm run dev          # migrations -> demo seed -> API + worker + web
 ```
 
 Open <http://localhost:3000>, click **Login**, type any name (use `admin` to see the admin
 desk). API docs: <http://localhost:8000/docs>.
 
 > Windows PowerShell may block `npm.ps1`; use `npm.cmd` instead of `npm` if you see
-> "running scripts is disabled". The local Postgres data directory lives outside the repo
-> (`%LOCALAPPDATA%\aajke-ki-scene\pgdata`) - never inside a OneDrive/Dropbox folder.
+> "running scripts is disabled".
 
 ### Individual processes
 
@@ -66,9 +75,9 @@ desk). API docs: <http://localhost:8000/docs>.
 | `npm run dev:api` | FastAPI on :8000 |
 | `npm run dev:worker` | Coordinator loop (ingestion if enabled, AI queue, offline Crunch, editions) |
 | `npm run dev:web` | Next.js on :3000 |
-| `uv run python -m worker ingest --allow-live --source rbi-press` | One-off live fetch with operator consent |
-| `uv run python -m worker sync-models` | Checks configured model IDs against each provider's model list |
-| `uv run python -m app.cli grant-admin you@example.com` | Admin role for an OAuth user |
+| `uv --directory backend run python -m worker ingest --allow-live --source rbi-press` | One-off live fetch with operator consent |
+| `uv --directory backend run python -m worker sync-models` | Checks configured model IDs against each provider's model list |
+| `uv --directory backend run python -m app.cli grant-admin you@example.com` | Admin role for an OAuth user |
 
 ## Using Neon
 
@@ -101,27 +110,26 @@ midnight **America/Los_Angeles**; the ledger tracks that, not UTC midnight. Deta
 ## Tests
 
 ```bash
-npm run db:start                     # pytest needs the local (or a test) Postgres
-uv run pytest                        # API + worker: 101 tests, real Postgres (wipes TEST_DATABASE_URL)
-npm run lint && npm run typecheck    # ruff, ruff format --check, mypy, ESLint, tsc
-npm run test --workspace apps/web    # Vitest
-npm run test:e2e                     # Playwright (starts the stack if it isn't running)
+npm run db:start                          # pytest needs a Postgres at TEST_DATABASE_URL
+uv --directory backend run pytest         # API + worker, real Postgres (wipes TEST_DATABASE_URL)
+npm run lint && npm run typecheck         # ruff, ruff format --check, mypy, ESLint, tsc
+npm run test --workspace frontend         # Vitest
+npm run test:e2e                          # Playwright (starts the stack if it isn't running)
 ```
 
 If `npx playwright install` can't download browsers (corporate TLS inspection), use an
 installed browser: `PLAYWRIGHT_CHANNEL=chrome` or `msedge`. Live-network tests are opt-in:
-`RUN_LIVE_TESTS=1 uv run pytest -m live`. Visual QA screenshots:
-`npm run screenshots --workspace apps/web`. Full plan: [`docs/test-plan.md`](docs/test-plan.md).
+`RUN_LIVE_TESTS=1 uv --directory backend run pytest -m live`. Visual QA screenshots:
+`npm run screenshots --workspace frontend`. Full plan: [`docs/test-plan.md`](docs/test-plan.md).
 
 ## Layout
 
 ```text
-apps/web        Next.js app: pages, Chaotic Cozy design system, Auth.js, /api/backend proxy
-apps/api        FastAPI app: models, Alembic migration, services, /api/v1 routers, seed data
-apps/worker     Ingestion adapters, dedupe/relevance, AI orchestrator, quota ledger, Crunch engine
+frontend/       Next.js site. Deploy this folder on Vercel.
+backend/        FastAPI (`backend/api`) and the worker (`backend/worker`). Deploy this folder on Render.
 packages/shared-schemas  JSON Schemas of the AI output contracts
 docs/           Architecture, sources & licences, prompts, test plan, operations, screenshots
-scripts/        setup, embedded Postgres, dev runner, schema export
+scripts/        setup, dev runner, schema export
 ```
 
 ## Privacy and safety in one paragraph

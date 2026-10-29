@@ -9,12 +9,13 @@ import { AiStatusBadge, DemoBadge, StickerBadge } from "@/components/design-syst
 import { StickyNote } from "@/components/design-system/StickyNote";
 import { BulbSticker, Stamp } from "@/components/design-system/stickers";
 import { ArticleActions } from "@/components/news/ArticleActions";
+import { ArticleChat } from "@/components/news/ArticleChat";
 import { PracticeQuiz } from "@/components/news/PracticeQuiz";
-import type { ArticleDetail } from "@/lib/api-types";
+import type { ArticleDetail, ChatThread } from "@/lib/api-types";
 import { categoryMeta } from "@/lib/categories";
 import { cn } from "@/lib/cn";
 import { formatDate, formatDateTime, glueSuffixes } from "@/lib/format";
-import { BackendError, backend } from "@/lib/server/api";
+import { BackendError, backend, backendOrNull } from "@/lib/server/api";
 
 async function load(slug: string, userId: string | null): Promise<ArticleDetail> {
   try {
@@ -44,7 +45,11 @@ const METHOD_LABEL: Record<string, string> = {
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const session = await auth();
-  const article = await load(slug, session?.user?.id ?? null);
+  const userId = session?.user?.id ?? null;
+  const [article, thread] = await Promise.all([
+    load(slug, userId),
+    userId ? backendOrNull<ChatThread>(`/news/${encodeURIComponent(slug)}/chat`, { userId }) : Promise.resolve(null),
+  ]);
   const meta = categoryMeta(article.category);
   const ready = article.ai_status === "ready";
   const serious = article.sensitive;
@@ -211,9 +216,14 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <h2 id="practice" className="font-display text-2xl font-bold">
                     Quick practice
                   </h2>
+                  <p className="text-sm font-medium text-ink-soft">
+                    These questions were saved with the story. Practising reads them back from the database.
+                  </p>
                   <PracticeQuiz slug={article.slug} count={article.practice_question_count} signedIn={Boolean(session?.user)} />
                 </section>
               ) : null}
+
+              <ArticleChat slug={article.slug} signedIn={Boolean(session?.user)} initial={thread} />
             </>
           )}
         </div>

@@ -11,6 +11,9 @@ from app.models.content import (
     SourceItem,
 )
 from app.models.learning import (
+    ArticleChat,
+    ArticleChatCache,
+    ArticleChatMessage,
     ArticleSnapshot,
     CollectionItem,
     CrunchJob,
@@ -30,6 +33,9 @@ __all__ = [
     "AIJob",
     "AIUsage",
     "Article",
+    "ArticleChat",
+    "ArticleChatCache",
+    "ArticleChatMessage",
     "ArticleSnapshot",
     "AuditEvent",
     "Base",

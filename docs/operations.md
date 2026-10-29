@@ -2,12 +2,14 @@
 
 ## Processes
 
-| Process | Command | Scale |
+| Process | Where it lives | Command |
 |---|---|---|
-| Web | `npm run build --workspace apps/web && npm run start --workspace apps/web` | stateless, any number |
-| API | `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000` | stateless; the per-user rate limiter is in-process, so use a shared store before running many replicas |
-| Worker | `uv run python -m worker run` | run one (extra copies stand by - the `worker_leases` row allows a single coordinator) |
-| Database | Neon (pooled `DATABASE_URL`, direct `DIRECT_URL` for migrations) | - |
+| Web | `frontend/` on Vercel | `npm run build` then `npm run start` inside that folder |
+| API | `backend/` on Render (web service) | `uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Worker | `backend/` on Render (background worker) | `uv run python -m worker run` |
+| Database | Neon | pooled `DATABASE_URL`, direct `DIRECT_URL` for migrations |
+
+The API is stateless. The per-user rate limiter is in-process, so use a shared store before running many API replicas. Run one worker; extra copies stand by because the `worker_leases` row allows a single coordinator.
 
 Deploy order: run `npm run db:migrate` (direct URL) → deploy API → deploy worker → deploy web.
 Nothing in this repository deploys anything or creates paid resources.

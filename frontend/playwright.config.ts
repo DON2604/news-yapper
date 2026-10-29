@@ -18,7 +18,7 @@ export default defineConfig({
   ],
   webServer: {
     // Starts local Postgres, migrations, demo seed, API, worker and web (see scripts/dev.mjs).
-    command: "node ../../scripts/dev.mjs",
+    command: "node ../scripts/dev.mjs",
     url: baseURL,
     reuseExistingServer: true,
     timeout: 240_000,

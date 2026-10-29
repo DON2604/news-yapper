@@ -33,9 +33,11 @@ from app.models import (
     User,
 )
 from app.schemas.news import (
+    ArchiveDay,
     ArticleDetail,
     EditionOut,
     KeyFact,
+    NewsArchive,
     NewsItem,
     NewsPage,
     SourceRef,
@@ -229,6 +231,26 @@ def list_news(
     items = build_items(db, [(r[0], r[1]) for r in rows], user)
     next_cursor = encode_cursor(offset + limit) if offset + limit < total else None
     return NewsPage(items=items, next_cursor=next_cursor, total=total)
+
+
+def list_archive(db: Session, *, include_demo: bool | None = None) -> NewsArchive:
+    """Dates that already have stored stories. Reading this never calls a model."""
+    include_demo = get_settings().demo_mode if include_demo is None else include_demo
+    ai_count = func.count(Article.id).filter(Event.status == "published")
+    stmt = (
+        select(Event.date, func.count(Event.id), ai_count)
+        .outerjoin(Article, Article.event_id == Event.id)
+        .where(Event.status.in_(VISIBLE_STATUSES))
+        .group_by(Event.date)
+        .order_by(Event.date.desc())
+        .limit(180)
+    )
+    if not include_demo:
+        stmt = stmt.where(Event.is_demo.is_(False))
+    rows = db.execute(stmt).all()
+    return NewsArchive(
+        dates=[ArchiveDay(date=day, story_count=int(stories), ai_count=int(ready)) for day, stories, ready in rows]
+    )
 
 
 def get_article(db: Session, slug: str, user: User | None) -> ArticleDetail | None:

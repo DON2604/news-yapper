@@ -1,4 +1,4 @@
-// Mirror of apps/api/app/services/srs.py, used only to label the rating buttons.
+// Mirror of backend/api/app/services/srs.py, used only to label the rating buttons.
 // The server remains the source of truth for scheduling.
 
 export type Outcome = "again" | "hard" | "good" | "easy";
