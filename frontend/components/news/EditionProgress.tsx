@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { cn } from "@/lib/cn";
 
-const REFRESH_MS = 45_000;
+const REFRESH_MS = 20_000;
 
 /** How much of today's edition already has its Banglish rewrite. Re-reads the page while stories are pending. */
 export function EditionProgress({ ready, total, className }: { ready: number; total: number; className?: string }) {

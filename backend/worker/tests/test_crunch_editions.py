@@ -126,6 +126,35 @@ def test_news_validation_rejects_wrong_events_and_flags_sensitive_tone():
         validate_news_batch({"articles": [{**base, "category": "gossip"}]}, evidence, date(2026, 1, 1))
 
 
+def test_news_validation_accepts_numbers_from_known_dates_only():
+    texts = {"s1": "RBI released data on external commercial borrowings for August."}
+    summary = "RBI released data on external commercial borrowings for August 2026, published on the 28th."
+    article = {
+        "event_id": "e1",
+        "headline_banglish": "RBI ECB data drop korlo, August-er scene",
+        "neutral_summary": summary,
+        "banglish_summary": "RBI August-er ECB data release korlo, mane borrowing er hishab.",
+        "category": "economy",
+        "key_facts": [
+            {"claim": "RBI released data on external commercial borrowings.", "source_item_ids": ["s1"]},
+            {"claim": "The released borrowing data covers August 2026.", "source_item_ids": ["s1"]},
+        ],
+        "why_it_matters": "ECB data is a banking exam staple.",
+        "importance_score": 50,
+    }
+    dated = {"e1": EventEvidence("e1", False, texts, {"s1": "u"}, known_dates="2026-10-29 2026-10-28")}
+    [ok] = validate_news_batch({"articles": [article]}, dated, date(2026, 10, 30))
+    assert ok.publishable, ok.flags
+
+    undated = {"e1": EventEvidence("e1", False, texts, {"s1": "u"})}
+    [flagged] = validate_news_batch({"articles": [article]}, undated, date(2026, 10, 30))
+    assert "summary_unsupported_number:2026,28" in flagged.flags
+
+    invented = {**article, "neutral_summary": summary + " The total was 70 billion dollars."}
+    [still_flagged] = validate_news_batch({"articles": [invented]}, dated, date(2026, 10, 30))
+    assert "summary_unsupported_number:70" in still_flagged.flags
+
+
 def test_crunch_validation_drops_unknown_refs_or_rejects():
     good = {"text": "Repo is RBI's lending rate", "source_refs": ["N1"]}
     unknown = {"text": "Invented point", "source_refs": ["Q7"]}

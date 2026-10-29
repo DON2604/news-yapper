@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from app.db import SessionLocal
 from app.models import AIJob, Event
-from pipeline.generate import FAILED_NOTE
+from pipeline.generate import FAILED_NOTE, plan_news_jobs
 from pipeline.nightly import prep_due, run_nightly_prep
 
 KOLKATA = ZoneInfo("Asia/Kolkata")
@@ -48,3 +48,24 @@ def test_prep_reopens_failed_stories_and_queues_rewrites(ai_settings, make_event
         refreshed = db.get(Event, event.id)
         assert refreshed.review_note is None and refreshed.status == "queued"
         assert db.query(AIJob).filter(AIJob.kind == "news_batch").count() == 1
+
+
+def test_prep_requeues_a_dead_lettered_batch_instead_of_skipping_it(ai_settings, make_event):
+    settings = ai_settings(app_timezone="Asia/Kolkata", enable_live_ingestion=False)
+    first = _local(2, 5)
+    event = make_event(day=first.astimezone(KOLKATA).date())
+    with SessionLocal() as db:
+        assert plan_news_jobs(db, settings, first) == 1
+        job = db.query(AIJob).filter(AIJob.kind == "news_batch").one()
+        job.status, job.attempts, job.error_code = "dead_letter", 4, "max_attempts"
+        refreshed = db.get(Event, event.id)
+        refreshed.status, refreshed.review_note = "discovered", f"{FAILED_NOTE}: max_attempts"
+        db.commit()
+
+    report = run_nightly_prep(SessionLocal, settings, _local(2, 5).replace(day=16))
+
+    assert report["reopened"] == 1 and report["planned_news_jobs"] == 1
+    with SessionLocal() as db:
+        job = db.query(AIJob).filter(AIJob.kind == "news_batch").one()
+        assert job.status == "queued" and job.attempts == 0 and job.error_code is None
+        assert db.get(Event, event.id).status == "queued"

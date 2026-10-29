@@ -189,6 +189,7 @@ DEFAULT_ROUTING: dict[str, dict[str, Any]] = {
 
 def load_routing(settings: Settings) -> dict[str, TaskRoute]:
     table: dict[str, dict[str, Any]] = {k: dict(v) for k, v in DEFAULT_ROUTING.items()}
+    pinned: set[str] = set()
     if settings.ai_task_routing_json.strip():
         override = json.loads(settings.ai_task_routing_json)
         if not isinstance(override, dict):
@@ -197,6 +198,8 @@ def load_routing(settings: Settings) -> dict[str, TaskRoute]:
             if task not in TASKS:
                 raise ValueError(f"Unknown task in AI_TASK_ROUTING_JSON: {task}")
             table[task] = {**table.get(task, {}), **cfg}
+            if "candidates" in cfg:
+                pinned.add(task)
 
     order = settings.provider_order
     routes: dict[str, TaskRoute] = {}
@@ -208,8 +211,10 @@ def load_routing(settings: Settings) -> dict[str, TaskRoute]:
         if not settings.ai_allow_paid_fallback:
             candidates = [c for c in candidates if not c.paid]
         # AI_PROVIDER_ORDER re-sorts providers (stable within a provider) without
-        # dropping any candidate; providers absent from the order go last.
-        candidates.sort(key=lambda c: order.index(c.provider) if c.provider in order else len(order))
+        # dropping any candidate; providers absent from the order go last. Candidates
+        # listed explicitly in AI_TASK_ROUTING_JSON keep their given order.
+        if task not in pinned:
+            candidates.sort(key=lambda c: order.index(c.provider) if c.provider in order else len(order))
         routes[task] = TaskRoute(
             task=task,
             candidates=candidates,

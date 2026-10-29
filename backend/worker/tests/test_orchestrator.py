@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from sqlalchemy import select
 
+from app.ai_config import load_routing
 from app.db import SessionLocal
 from app.models import AIJob, AIUsage, Article, CrunchJob, Event, EventSource, Question, QuotaState
 from pipeline.ai_orchestrator import AIOrchestrator
@@ -84,6 +85,13 @@ def test_rate_limit_falls_back_to_groq(make_event, ai_settings, clock, fake_prov
         state = db.scalar(select(QuotaState).where(QuotaState.provider == "gemini"))
         assert state.blocked_until == clock.now + timedelta(seconds=30)
         assert db.scalar(select(Article.ai_provider).where(Article.event_id == event.id)) == "groq"
+
+
+def test_explicit_task_routing_keeps_its_order(ai_settings):
+    routing = '{"news_batch":{"candidates":[["groq","quality"],["gemini","default"]]}}'
+    routes = load_routing(ai_settings(ai_task_routing_json=routing))
+    assert [c.provider for c in routes["news_batch"].candidates] == ["groq", "gemini"]
+    assert routes["crunch"].candidates[0].provider == "gemini"
 
 
 def test_outage_defers_without_ping_pong_and_site_keeps_working(

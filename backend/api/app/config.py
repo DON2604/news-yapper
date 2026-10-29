@@ -94,6 +94,8 @@ class Settings(BaseSettings):
     ai_max_job_attempts: int = 4
     ai_auto_publish_validated: bool = True
     ai_daily_news_job_limit: int = 8
+    ai_news_min_relevance: float = 35.0
+    ai_news_lookback_days: int = Field(default=1, ge=0, le=14)
     ai_crunch_daily_share: float = 0.3
 
     # Crunch limits

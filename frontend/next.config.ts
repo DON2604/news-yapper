@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd(), "..");
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  allowedDevOrigins: ["*.ngrok-free.app"],
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
   async headers() {

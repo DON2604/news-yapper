@@ -45,7 +45,7 @@ def reopen_failed(db: Session, settings: Settings, now: datetime) -> int:
         select(Event).where(
             Event.is_demo.is_(False),
             Event.status == "discovered",
-            Event.date >= today - timedelta(days=1),
+            Event.date >= today - timedelta(days=settings.ai_news_lookback_days),
             Event.review_note.like(f"{FAILED_NOTE}%"),
         )
     ).all()
