@@ -1,0 +1,155 @@
+{
+  "properties": {
+    "concise_bullets": {
+      "items": {
+        "properties": {
+          "text": {
+            "maxLength": 320,
+            "minLength": 3,
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "text",
+          "source_refs"
+        ],
+        "type": "object"
+      },
+      "maxItems": 25,
+      "minItems": 1,
+      "type": "array"
+    },
+    "topic_sections": {
+      "items": {
+        "properties": {
+          "topic": {
+            "maxLength": 60,
+            "minLength": 1,
+            "type": "string"
+          },
+          "bullets": {
+            "items": {
+              "properties": {
+                "text": {
+                  "maxLength": 320,
+                  "minLength": 3,
+                  "type": "string"
+                },
+                "source_refs": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 6,
+                  "minItems": 1,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "text",
+                "source_refs"
+              ],
+              "type": "object"
+            },
+            "maxItems": 12,
+            "type": "array"
+          }
+        },
+        "required": [
+          "topic"
+        ],
+        "type": "object"
+      },
+      "maxItems": 8,
+      "type": "array"
+    },
+    "mnemonics": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 6,
+      "type": "array"
+    },
+    "exam_traps": {
+      "items": {
+        "properties": {
+          "text": {
+            "maxLength": 320,
+            "minLength": 3,
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "text",
+          "source_refs"
+        ],
+        "type": "object"
+      },
+      "maxItems": 10,
+      "type": "array"
+    },
+    "flashcards": {
+      "items": {
+        "properties": {
+          "front": {
+            "maxLength": 320,
+            "minLength": 3,
+            "type": "string"
+          },
+          "back": {
+            "maxLength": 480,
+            "minLength": 1,
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array"
+          },
+          "exam_topic": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "front",
+          "back",
+          "source_refs"
+        ],
+        "type": "object"
+      },
+      "maxItems": 15,
+      "type": "array"
+    }
+  },
+  "required": [
+    "title",
+    "concise_bullets"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Synthetic test fixture shaped like the RBI press-release RSS feed. Not real news. -->
+<rss version="2.0">
+  <channel>
+    <title>PRESS RELEASES FROM RBI</title>
+    <link>http://www.rbi.org.in</link>
+    <description>This is Feed from RBI for Press Releases.</description>
+    <item>
+      <title><![CDATA[RBI imposes monetary penalty on Fixture Co-operative Bank Ltd]]></title>
+      <link>https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=99001</link>
+      <description><![CDATA[<table width="100%"><tr><td><p>The Reserve Bank of India has imposed a monetary penalty of 2.5 lakh on Fixture Co-operative Bank Ltd for non-compliance with directions.</p></td></tr></table>]]></description>
+      <pubDate>Tue, 27 Oct 2026 18:15:00 GMT</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[Monetary Policy Statement - Fixture Resolution of the MPC]]></title>
+      <link>https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=99002</link>
+      <description><![CDATA[<p>The Monetary Policy Committee (MPC) decided to keep the policy repo rate unchanged.</p>]]></description>
+      <pubDate>Tue, 27 Oct 2026 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

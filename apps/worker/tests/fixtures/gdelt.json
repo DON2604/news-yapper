@@ -1,0 +1,5 @@
+{"articles": [
+  {"url": "https://example-news.in/national-fixture-mission-cabinet", "url_mobile": "", "title": "Cabinet approves National Fixture Mission with Rs 1500 crore outlay", "seendate": "20261026T061500Z", "socialimage": "", "domain": "example-news.in", "language": "English", "sourcecountry": "India"},
+  {"url": "https://example-world.com/summit-fixture", "url_mobile": "", "title": "Leaders meet at Fixture Summit to discuss climate finance", "seendate": "20261026T080000Z", "socialimage": "", "domain": "example-world.com", "language": "English", "sourcecountry": "United Kingdom"},
+  {"url": "", "title": "Missing URL is skipped", "seendate": "20261026T080000Z"}
+]}

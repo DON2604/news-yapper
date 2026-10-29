@@ -1,0 +1,35 @@
+{
+  "name": "aajke-ki-scene",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aajke Ki Scene? — Banglish-first AI-assisted news, current affairs and exam prep.",
+  "workspaces": [
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "db:start": "node scripts/local-postgres.mjs start",
+    "db:stop": "node scripts/local-postgres.mjs stop",
+    "db:status": "node scripts/local-postgres.mjs status",
+    "db:migrate": "uv run alembic -c apps/api/alembic.ini upgrade head",
+    "db:seed": "uv run python -m app.cli seed-demo",
+    "dev": "node scripts/dev.mjs",
+    "dev:api": "uv run uvicorn app.main:app --reload --reload-dir apps/api/app --host 127.0.0.1 --port 8000",
+    "dev:worker": "uv run python -m worker run",
+    "dev:web": "npm run dev --workspace apps/web",
+    "lint": "npm run lint:py && npm run lint --workspace apps/web",
+    "lint:py": "uv run ruff check apps/api apps/worker conftest.py scripts && uv run ruff format --check apps/api apps/worker conftest.py scripts",
+    "typecheck": "npm run typecheck:py && npm run typecheck --workspace apps/web",
+    "typecheck:py": "uv run mypy",
+    "test": "npm run test:py && npm run test --workspace apps/web",
+    "test:py": "uv run pytest",
+    "test:e2e": "npm run e2e --workspace apps/web"
+  },
+  "devDependencies": {
+    "embedded-postgres": "18.4.0-beta.17",
+    "pg": "^8.16.3"
+  }
+}

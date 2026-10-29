@@ -1,0 +1,66 @@
+[project]
+name = "aajke-ki-scene"
+version = "0.1.0"
+description = "Workspace root for the Aajke Ki Scene API and worker"
+requires-python = ">=3.11"
+dependencies = ["aks-api", "aks-worker"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["apps/api", "apps/worker"]
+
+[tool.uv.sources]
+aks-api = { workspace = true }
+aks-worker = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["apps/api/tests", "apps/worker/tests"]
+addopts = "--import-mode=importlib -q"
+markers = [
+    "live: performs real network requests (skipped unless RUN_LIVE_TESTS=1)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:feedparser.*",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["apps/web", "node_modules", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = [
+    "B008", # FastAPI dependency defaults (Depends/Query) are idiomatic
+    "E501", # line length is enforced by `ruff format`; long string literals are allowed
+    "SIM108",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/*/tests/*" = ["B011"]
+"apps/api/alembic/versions/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "adapters", "pipeline", "worker"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["apps/api/app", "apps/worker/adapters", "apps/worker/pipeline", "apps/worker/worker.py"]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+explicit_package_bases = true
+mypy_path = ["apps/api", "apps/worker"]

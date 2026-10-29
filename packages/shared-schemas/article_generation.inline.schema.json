@@ -1,0 +1,179 @@
+{
+  "properties": {
+    "articles": {
+      "items": {
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "headline_banglish": {
+            "maxLength": 180,
+            "minLength": 8,
+            "type": "string"
+          },
+          "neutral_summary": {
+            "maxLength": 1400,
+            "minLength": 40,
+            "type": "string"
+          },
+          "banglish_summary": {
+            "maxLength": 1000,
+            "minLength": 20,
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "polity",
+              "economy",
+              "science",
+              "international",
+              "environment",
+              "awards",
+              "sports",
+              "other"
+            ],
+            "type": "string"
+          },
+          "published_event_date": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "key_facts": {
+            "items": {
+              "properties": {
+                "claim": {
+                  "maxLength": 320,
+                  "minLength": 10,
+                  "type": "string"
+                },
+                "source_item_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 5,
+                  "minItems": 1,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "claim",
+                "source_item_ids"
+              ],
+              "type": "object"
+            },
+            "maxItems": 5,
+            "minItems": 2,
+            "type": "array"
+          },
+          "why_it_matters": {
+            "maxLength": 700,
+            "minLength": 10,
+            "type": "string"
+          },
+          "exam_tags": {
+            "items": {
+              "enum": [
+                "SSC",
+                "UPSC",
+                "STATE_PSC",
+                "BANKING",
+                "RAILWAYS",
+                "GENERAL"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "importance_score": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "quiz": {
+            "items": {
+              "properties": {
+                "question": {
+                  "maxLength": 300,
+                  "minLength": 10,
+                  "type": "string"
+                },
+                "options": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 4,
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "correct_index": {
+                  "maximum": 3,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "explanation": {
+                  "maxLength": 500,
+                  "minLength": 10,
+                  "type": "string"
+                },
+                "evidence_source_item_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 5,
+                  "minItems": 1,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "question",
+                "options",
+                "correct_index",
+                "explanation",
+                "evidence_source_item_ids"
+              ],
+              "type": "object"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "uncertainties": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "sensitive_story": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "event_id",
+          "headline_banglish",
+          "neutral_summary",
+          "banglish_summary",
+          "category",
+          "key_facts",
+          "why_it_matters",
+          "importance_score"
+        ],
+        "type": "object"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "articles"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,21 @@
+# Optional local Postgres for development/tests (production uses Neon).
+# Without Docker, use `npm run db:start` (embedded Postgres) instead.
+#   docker compose up -d
+# then set in .env:
+#   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/aajke
+#   DIRECT_URL=postgresql://postgres:postgres@127.0.0.1:54329/aajke
+#   TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/aajke_test
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aajke
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - aks-pgdata:/var/lib/postgresql/data
+      - ./scripts/docker-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+volumes:
+  aks-pgdata:

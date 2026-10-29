@@ -1,0 +1,152 @@
+{
+  "$defs": {
+    "CrunchBulletOut": {
+      "properties": {
+        "text": {
+          "maxLength": 320,
+          "minLength": 3,
+          "title": "Text",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "text",
+        "source_refs"
+      ],
+      "title": "CrunchBulletOut",
+      "type": "object"
+    },
+    "CrunchFlashcardOut": {
+      "properties": {
+        "front": {
+          "maxLength": 320,
+          "minLength": 3,
+          "title": "Front",
+          "type": "string"
+        },
+        "back": {
+          "maxLength": 480,
+          "minLength": 1,
+          "title": "Back",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "exam_topic": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exam Topic"
+        }
+      },
+      "required": [
+        "front",
+        "back",
+        "source_refs"
+      ],
+      "title": "CrunchFlashcardOut",
+      "type": "object"
+    },
+    "CrunchSectionOut": {
+      "properties": {
+        "topic": {
+          "maxLength": 60,
+          "minLength": 1,
+          "title": "Topic",
+          "type": "string"
+        },
+        "bullets": {
+          "items": {
+            "$ref": "#/$defs/CrunchBulletOut"
+          },
+          "maxItems": 12,
+          "title": "Bullets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "topic"
+      ],
+      "title": "CrunchSectionOut",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "title": {
+      "maxLength": 140,
+      "minLength": 3,
+      "title": "Title",
+      "type": "string"
+    },
+    "concise_bullets": {
+      "items": {
+        "$ref": "#/$defs/CrunchBulletOut"
+      },
+      "maxItems": 25,
+      "minItems": 1,
+      "title": "Concise Bullets",
+      "type": "array"
+    },
+    "topic_sections": {
+      "items": {
+        "$ref": "#/$defs/CrunchSectionOut"
+      },
+      "maxItems": 8,
+      "title": "Topic Sections",
+      "type": "array"
+    },
+    "mnemonics": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 6,
+      "title": "Mnemonics",
+      "type": "array"
+    },
+    "exam_traps": {
+      "items": {
+        "$ref": "#/$defs/CrunchBulletOut"
+      },
+      "maxItems": 10,
+      "title": "Exam Traps",
+      "type": "array"
+    },
+    "flashcards": {
+      "items": {
+        "$ref": "#/$defs/CrunchFlashcardOut"
+      },
+      "maxItems": 15,
+      "title": "Flashcards",
+      "type": "array"
+    }
+  },
+  "required": [
+    "title",
+    "concise_bullets"
+  ],
+  "title": "CrunchOut",
+  "type": "object"
+}

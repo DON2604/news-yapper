@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* Chaotic Cozy design tokens (plan section 2). Exact brand values; the *-deep
+   variants exist only for text-on-cream contrast (WCAG AA). */
+@theme {
+  --color-cream: #fff8e9;
+  --color-cream-deep: #fbedd0;
+  --color-ink: #202020;
+  --color-ink-soft: #4a4740;
+  --color-mango: #ffd76a;
+  --color-mango-deep: #8a6400;
+  --color-punch: #f05a28;
+  --color-punch-deep: #b83a12;
+  --color-mint: #bfecd4;
+  --color-mint-deep: #1f6e4a;
+  --color-lavender: #dccbff;
+  --color-lavender-deep: #5a3fb0;
+  --color-pink: #ffd3d3;
+  --color-pink-deep: #a8324b;
+  --color-paper: #ffffff;
+
+  --font-display: "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 16px;
+  --radius-blob: 14px;
+
+  --shadow-brutal-sm: 3px 3px 0 0 var(--color-ink);
+  --shadow-brutal: 4px 4px 0 0 var(--color-ink);
+  --shadow-brutal-lg: 6px 6px 0 0 var(--color-ink);
+  --shadow-lift: 0 14px 28px -16px rgb(32 32 32 / 0.45);
+
+  --animate-pop: pop 220ms cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
+  --animate-rise: rise 240ms ease-out both;
+  --animate-burst: burst 700ms ease-out forwards;
+  --animate-steam: steam 2.4s ease-in-out 3;
+  --animate-spin-slow: spin 1.6s linear infinite;
+
+  @keyframes pop {
+    0% {
+      transform: scale(0.92);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(8px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes burst {
+    0% {
+      transform: translate(0, 0) scale(0.4) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot));
+      opacity: 0;
+    }
+  }
+  @keyframes steam {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.9;
+    }
+    50% {
+      transform: translateY(-3px);
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--color-mango);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 10px;
+  }
+  .bg-ink :focus-visible,
+  .on-dark:focus-visible {
+    outline-color: var(--color-mango);
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrapbook textures - used sparingly (Brain Dump, digests, hero accents). */
+@utility paper-grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.13 0 0 0 0 0.11 0 0 0 0 0.08 0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@utility dot-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgb(32 32 32 / 0.14) 1.2px, transparent 0);
+  background-size: 22px 22px;
+}
+
+@utility lined-paper {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgb(90 63 176 / 0.16) 27px 28px);
+}
+
+@utility marker {
+  background-image: linear-gradient(transparent 58%, var(--color-mango) 58%, var(--color-mango) 92%, transparent 92%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@utility brutal-lift {
+  transition:
+    transform 170ms ease,
+    box-shadow 170ms ease;
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-brutal-lg);
+  }
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 var(--color-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Calm long-form reading mode for article bodies. */
+@utility reading {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  max-width: 68ch;
+}
