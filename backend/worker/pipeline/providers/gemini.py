@@ -30,6 +30,23 @@ from pipeline.providers.base import (
     parse_json_text,
 )
 
+# generateContent answers 400 INVALID_ARGUMENT when the response schema carries array-length
+# bounds; pydantic still enforces them after parsing.
+UNSUPPORTED_SCHEMA_KEYS = frozenset({"minItems", "maxItems"})
+# Thinking tokens count toward maxOutputTokens, so long JSON answers truncate unless thinking is capped.
+LOW_THINKING_PREFIXES = ("gemini-3",)
+
+
+def gemini_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    def walk(node: Any) -> Any:
+        if isinstance(node, dict):
+            return {k: walk(v) for k, v in node.items() if k not in UNSUPPORTED_SCHEMA_KEYS}
+        if isinstance(node, list):
+            return [walk(v) for v in node]
+        return node
+
+    return walk(inline_schema(schema))
+
 
 def classify_error(response: httpx.Response) -> ProviderError:
     status = response.status_code
@@ -77,11 +94,13 @@ class GeminiProvider:
             "contents": [{"role": "user", "parts": [{"text": request.user_prompt}]}],
             "generationConfig": {
                 "responseMimeType": "application/json",
-                "responseJsonSchema": inline_schema(request.json_schema),
+                "responseJsonSchema": gemini_schema(request.json_schema),
                 "maxOutputTokens": request.max_output_tokens,
                 "temperature": request.temperature,
             },
         }
+        if request.model.startswith(LOW_THINKING_PREFIXES):
+            body["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
         url = f"{self.cfg.base_url.rstrip('/')}/models/{request.model}:generateContent"
         try:
             response = self._client.post(url, json=body, headers=self._headers(), timeout=request.timeout_s)

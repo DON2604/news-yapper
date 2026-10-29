@@ -10,6 +10,7 @@ import { StickerBadge } from "@/components/design-system/StickerBadge";
 import { StickyNote } from "@/components/design-system/StickyNote";
 import { FlameSticker, Mascot, NotebookSticker, SparkleSticker } from "@/components/design-system/stickers";
 import { TopicPill } from "@/components/design-system/TopicPill";
+import { EditionProgress } from "@/components/news/EditionProgress";
 import { NewsCard } from "@/components/news/NewsCard";
 import type { DailyQuiz, Edition, NewsItem, Preferences, Progress, Snapshot } from "@/lib/api-types";
 import { CATEGORY_ORDER } from "@/lib/categories";
@@ -69,13 +70,12 @@ export default async function HomePage() {
           <StickerBadge tone="mint" tilt={-1.5}>
             {edition.generated_count} source-checked
           </StickerBadge>
-          {edition.pending_count ? (
-            <StickerBadge tone="paper" tilt={1}>
-              {edition.pending_count} AI summary pending
-            </StickerBadge>
-          ) : null}
         </div>
       </section>
+
+      {edition.is_demo ? null : (
+        <EditionProgress ready={edition.generated_count} total={edition.generated_count + edition.pending_count} />
+      )}
 
       {prefs && !prefs.onboarded_at ? (
         <Link

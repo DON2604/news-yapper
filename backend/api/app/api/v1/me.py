@@ -6,7 +6,17 @@ from fastapi import APIRouter, Depends, Response
 
 from app.ai_config import crunch_disclosure
 from app.config import get_settings
-from app.schemas.me import MeOut, PreferencesIn, PreferencesOut, ProgressOut, UserSyncIn, UserSyncOut
+from app.schemas.me import (
+    MeOut,
+    PasswordAuthOut,
+    PasswordLoginIn,
+    PasswordRegisterIn,
+    PreferencesIn,
+    PreferencesOut,
+    ProgressOut,
+    UserSyncIn,
+    UserSyncOut,
+)
 from app.security.auth import DB, CurrentUser, require_internal
 from app.security.rate_limit import rate_limit
 from app.services import progress as progress_service
@@ -26,6 +36,37 @@ def sync_user(payload: UserSyncIn, db: DB) -> UserSyncOut:
         display_name=user.display_name,
         is_admin=user.is_admin,
         onboarded=prefs.onboarded_at is not None,
+    )
+
+
+@router.post(
+    "/auth/register",
+    response_model=PasswordAuthOut,
+    status_code=201,
+    tags=["auth"],
+    dependencies=[Depends(rate_limit("register", 8, 300))],
+)
+def register(payload: PasswordRegisterIn, db: DB) -> PasswordAuthOut:
+    user = user_service.register_with_password(db, payload)
+    return PasswordAuthOut(
+        auth_provider_id=user.auth_provider_id,
+        email=user.email or payload.email,
+        display_name=user.display_name,
+    )
+
+
+@router.post(
+    "/auth/login",
+    response_model=PasswordAuthOut,
+    tags=["auth"],
+    dependencies=[Depends(rate_limit("login", 12, 300))],
+)
+def login(payload: PasswordLoginIn, db: DB) -> PasswordAuthOut:
+    user = user_service.authenticate_password(db, payload)
+    return PasswordAuthOut(
+        auth_provider_id=user.auth_provider_id,
+        email=user.email or payload.email,
+        display_name=user.display_name,
     )
 
 

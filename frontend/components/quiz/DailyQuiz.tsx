@@ -85,8 +85,8 @@ export function DailyQuiz({ initial }: { initial: DailyQuizData }) {
             stories already saved in the database, so opening this page reads that saved set. Bhul hole Mistake Vault-e
             chole jabe, porer bar thik hobe.
           </p>
-          <CandyButton tone="ink" size="lg" onClick={start} disabled={starting}>
-            {starting ? "Setting up..." : "Start quiz"} <ArrowRight className="size-5" aria-hidden="true" />
+          <CandyButton tone="ink" size="lg" onClick={start} loading={starting} loadingText="Setting up...">
+            Start quiz <ArrowRight className="size-5" aria-hidden="true" />
           </CandyButton>
           {error ? (
             <p role="alert" className="font-semibold text-pink-deep">

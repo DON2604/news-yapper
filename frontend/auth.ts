@@ -3,7 +3,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import { syncUser } from "@/lib/server/api";
+import { loginWithPassword, syncUser } from "@/lib/server/api";
 
 export const demoMode = (process.env.DEMO_MODE ?? "true").toLowerCase() === "true";
 
@@ -17,6 +17,24 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
   providers.push(Google);
   oauthProviders.push({ id: "google", name: "Google" });
 }
+providers.push(
+  Credentials({
+    id: "password",
+    name: "Email",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      const email = String(credentials?.email ?? "").trim().toLowerCase();
+      const password = String(credentials?.password ?? "");
+      if (!email || !password) return null;
+      const account = await loginWithPassword(email, password);
+      if (!account) return null;
+      return { id: account.auth_provider_id, email: account.email, name: account.display_name };
+    },
+  }),
+);
 if (demoMode) {
   providers.push(
     Credentials({
@@ -42,7 +60,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user, account }) {
       if (user && account) {
         const providerId =
-          account.provider === "demo" ? String(user.id) : `${account.provider}:${account.providerAccountId}`;
+          account.provider === "demo" || account.provider === "password"
+            ? String(user.id)
+            : `${account.provider}:${account.providerAccountId}`;
         const synced = await syncUser({
           auth_provider_id: providerId,
           email: user.email ?? null,

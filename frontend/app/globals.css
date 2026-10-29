@@ -77,6 +77,15 @@
       opacity: 0.5;
     }
   }
+
+  @keyframes stripes {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 28px 0;
+    }
+  }
 }
 
 @layer base {
@@ -187,4 +196,14 @@
   font-size: 1.0625rem;
   line-height: 1.75;
   max-width: 68ch;
+}
+
+@utility progress-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgb(32 32 32 / 0.16) 0 7px,
+    transparent 7px 14px
+  );
+  background-size: 28px 100%;
+  animation: stripes 900ms linear infinite;
 }

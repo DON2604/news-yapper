@@ -158,7 +158,7 @@ DEFAULT_ROUTING: dict[str, dict[str, Any]] = {
     "news_batch": {
         "candidates": [["gemini", "default"], ["groq", "quality"], ["groq", "fallback"]],
         "max_input_tokens": 6000,
-        "max_output_tokens": 2048,
+        "max_output_tokens": 6144,
         "min_quality": "high",
     },
     "crunch": {

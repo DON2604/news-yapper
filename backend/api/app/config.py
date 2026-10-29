@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     demo_mode: bool = True
     enable_live_ingestion: bool = False
     ingestion_contact: str = ""
+    nightly_prep_enabled: bool = True
+    nightly_prep_hour: int = Field(default=2, ge=0, le=23)
 
     # Gemini
     enable_gemini: bool = False

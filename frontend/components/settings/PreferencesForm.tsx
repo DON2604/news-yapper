@@ -44,6 +44,8 @@ export function PreferencesForm({
   const [prefs, setPrefs] = useState<Preferences>(initial);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmName, setConfirmName] = useState("");
   const set = <K extends keyof Preferences>(key: K, value: Preferences[K]) => setPrefs((p) => ({ ...p, [key]: value }));
@@ -67,25 +69,32 @@ export function PreferencesForm({
   }
 
   async function exportData() {
-    const res = await fetch("/api/backend/me/export");
-    if (!res.ok) {
-      setMessage("Export failed - try again.");
-      return;
+    setExporting(true);
+    try {
+      const res = await fetch("/api/backend/me/export");
+      if (!res.ok) {
+        setMessage("Export failed - try again.");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(await res.json(), null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "news-yapper-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
     }
-    const blob = new Blob([JSON.stringify(await res.json(), null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "news-yapper-export.json";
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   async function deleteAccount() {
+    setDeleting(true);
     try {
       await api("me", { method: "DELETE" });
       if (logoutAction) await logoutAction();
     } catch (err) {
+      setDeleting(false);
       setMessage(err instanceof Error ? err.message : "Delete failed.");
     }
   }
@@ -189,8 +198,8 @@ export function PreferencesForm({
               Next
             </CandyButton>
           ) : (
-            <CandyButton tone="punch" disabled={saving} onClick={() => void save(true)}>
-              {saving ? "Saving..." : "Let's go! ☕"}
+            <CandyButton tone="punch" loading={saving} loadingText="Saving..." onClick={() => void save(true)}>
+              Let&apos;s go! ☕
             </CandyButton>
           )}
         </div>
@@ -252,8 +261,8 @@ export function PreferencesForm({
       </Section>
 
       <div className="sticky bottom-24 z-20 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-ink bg-cream/95 p-3 shadow-brutal backdrop-blur lg:bottom-6">
-        <CandyButton tone="punch" disabled={saving} onClick={() => void save()}>
-          {saving ? "Saving..." : "Save settings"}
+        <CandyButton tone="punch" loading={saving} loadingText="Saving..." onClick={() => void save()}>
+          Save settings
         </CandyButton>
         <p aria-live="polite" className="text-sm font-semibold">
           {message}
@@ -262,7 +271,7 @@ export function PreferencesForm({
 
       <Section title="Your data">
         <div className="flex flex-wrap gap-3">
-          <CandyButton tone="lavender" onClick={() => void exportData()}>
+          <CandyButton tone="lavender" loading={exporting} loadingText="Preparing export..." onClick={() => void exportData()}>
             <Download className="size-5" aria-hidden="true" /> Export everything (JSON)
           </CandyButton>
         </div>
@@ -274,7 +283,13 @@ export function PreferencesForm({
           </p>
           <div className="flex flex-wrap gap-2">
             <input value={confirmName} onChange={(e) => setConfirmName(e.target.value)} aria-label="Type your display name to confirm deletion" className="min-h-11 rounded-xl border-2 border-ink bg-paper px-3" />
-            <CandyButton tone="pink" disabled={confirmName !== displayName} onClick={() => void deleteAccount()}>
+            <CandyButton
+              tone="pink"
+              disabled={confirmName !== displayName}
+              loading={deleting}
+              loadingText="Deleting..."
+              onClick={() => void deleteAccount()}
+            >
               <Trash2 className="size-5" aria-hidden="true" /> Delete forever
             </CandyButton>
           </div>

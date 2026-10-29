@@ -52,6 +52,51 @@ export async function backendOrNull<T>(path: string, init: Init = {}): Promise<T
   }
 }
 
+export type PasswordAccount = {
+  auth_provider_id: string;
+  email: string;
+  display_name: string;
+};
+
+async function postPassword(path: string, body: unknown): Promise<Response> {
+  return fetch(`${API_BASE_URL}/api/v1${path}`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+}
+
+export async function registerAccount(payload: {
+  email: string;
+  password: string;
+  display_name: string;
+}): Promise<PasswordAccount> {
+  let res: Response;
+  try {
+    res = await postPassword("/auth/register", payload);
+  } catch {
+    throw new BackendError(503, "The API is not reachable. Start it with `npm run dev` at the repository root.");
+  }
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new BackendError(res.status, typeof detail?.detail === "string" ? detail.detail : "Could not create the account.");
+  }
+  return res.json();
+}
+
+export async function loginWithPassword(email: string, password: string): Promise<PasswordAccount | null> {
+  let res: Response;
+  try {
+    res = await postPassword("/auth/login", { email, password });
+  } catch {
+    return null;
+  }
+  if (res.status === 401 || res.status === 422) return null;
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function syncUser(payload: {
   auth_provider_id: string;
   email: string | null;

@@ -1,9 +1,11 @@
 import { Search } from "lucide-react";
+import Form from "next/form";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { candyClasses } from "@/components/design-system/CandyButton";
 import { EmptyState } from "@/components/design-system/EmptyState";
 import { SectionTitle } from "@/components/design-system/SectionTitle";
+import { SubmitButton } from "@/components/design-system/SubmitButton";
 import { NewspaperSticker } from "@/components/design-system/stickers";
 import { TopicPill } from "@/components/design-system/TopicPill";
 import { NewsCard } from "@/components/news/NewsCard";
@@ -83,7 +85,7 @@ export default async function NewsFeedPage({ searchParams }: { searchParams: Pro
       <div className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <p className="font-display text-sm font-bold tracking-[0.16em] text-punch-deep uppercase">Saved dates</p>
-          <form method="get" action="/news" className="flex flex-wrap items-center gap-2">
+          <Form action="/news" className="flex flex-wrap items-center gap-2">
             {FILTER_KEYS.map((key) =>
               key !== "date" && params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null,
             )}
@@ -96,10 +98,10 @@ export default async function NewsFeedPage({ searchParams }: { searchParams: Pro
                 className={cn(selectCls, "bg-paper")}
               />
             </label>
-            <button type="submit" className={candyClasses("mango", "sm")}>
+            <SubmitButton tone="mango" size="sm" loadingText="Opening...">
               Open date
-            </button>
-          </form>
+            </SubmitButton>
+          </Form>
         </div>
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           <Link
@@ -128,7 +130,7 @@ export default async function NewsFeedPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
-      <form method="get" action="/news" className="grid gap-3 rounded-[20px] border-2 border-ink bg-cream-deep p-4 sm:grid-cols-2 lg:grid-cols-[2fr_repeat(4,1fr)_auto]">
+      <Form action="/news" className="grid gap-3 rounded-[20px] border-2 border-ink bg-cream-deep p-4 sm:grid-cols-2 lg:grid-cols-[2fr_repeat(4,1fr)_auto]">
         {activeCategory ? <input type="hidden" name="category" value={activeCategory} /> : null}
         {params.date ? <input type="hidden" name="date" value={params.date} /> : null}
         <label className="relative flex items-center">
@@ -177,10 +179,10 @@ export default async function NewsFeedPage({ searchParams }: { searchParams: Pro
             <option value="source">Source headlines</option>
           </select>
         </label>
-        <button type="submit" className={candyClasses("punch", "sm")}>
+        <SubmitButton tone="punch" size="sm" loadingText="Filtering...">
           Filter
-        </button>
-      </form>
+        </SubmitButton>
+      </Form>
 
       {!page ? (
         <EmptyState title="Feed load hocchhe na" mood="oops">

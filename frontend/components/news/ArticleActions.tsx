@@ -48,9 +48,16 @@ export function ArticleActions({
 
   return (
     <div className="space-y-2.5">
-      <CandyButton tone={savedId ? "mint" : "mango"} className="w-full" onClick={save} disabled={busy || Boolean(savedId)}>
+      <CandyButton
+        tone={savedId ? "mint" : "mango"}
+        className="w-full"
+        onClick={save}
+        disabled={Boolean(savedId)}
+        loading={busy}
+        loadingText="Pinning..."
+      >
         {savedId ? <BookmarkCheck className="size-5" aria-hidden="true" /> : <BookmarkPlus className="size-5" aria-hidden="true" />}
-        {savedId ? "Pinned to Brain Dump" : busy ? "Pinning..." : "Pin to Brain Dump"}
+        {savedId ? "Pinned to Brain Dump" : "Pin to Brain Dump"}
       </CandyButton>
       <CandyButton tone="lavender" className="w-full" onClick={() => setComposerOpen(true)}>
         <StickyIcon className="size-5" aria-hidden="true" /> Add a sticky note

@@ -21,6 +21,7 @@ class User(UUIDPk, Timestamps, Base):
     auth_provider_id: Mapped[str] = mapped_column(String(255), unique=True)
     display_name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str | None] = mapped_column(String(320), index=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255))
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

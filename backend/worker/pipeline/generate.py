@@ -212,7 +212,7 @@ def article_content_hash(evidence: EventEvidence, provider: str, model: str) -> 
         "facts": sorted(evidence.item_texts.items()),
         "prompt": NEWS_PROMPT_VERSION,
         "model": f"{provider}:{model}",
-        "tone": "banglish-medium",
+        "tone": "banglish-genz",
     }
     return hashlib.sha256(json.dumps(basis, sort_keys=True).encode()).hexdigest()
 

@@ -11,6 +11,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import AIJob, AIUsage, Article, CrunchJob, Event, EventSource, Question, QuotaState
 from pipeline.ai_orchestrator import AIOrchestrator
+from pipeline.prompts import NEWS_PROMPT_VERSION
 from pipeline.providers.base import AuthError, QuotaExhausted, RateLimited, ServerError
 
 
@@ -59,7 +60,7 @@ def test_success_publishes_shared_article(make_event, ai_settings, clock, fake_p
         assert db.get(Event, event.id).status == "published"
         article = db.scalar(select(Article).where(Article.event_id == event.id))
         assert article.verification_method == "automated_evidence_check" and article.ai_provider == "gemini"
-        assert article.prompt_version == "news-v1"
+        assert article.prompt_version == NEWS_PROMPT_VERSION
         question = db.scalar(select(Question).where(Question.article_id == article.id))
         assert question.validation_status == "validated" and question.evidence_urls
         usage = db.scalars(select(AIUsage)).all()

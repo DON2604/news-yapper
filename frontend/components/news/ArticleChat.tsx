@@ -141,9 +141,16 @@ export function ArticleChat({
                 className="min-h-11 w-full rounded-xl border-2 border-ink bg-paper px-3"
               />
             </label>
-            <CandyButton type="submit" tone="ink" size="sm" disabled={sending || pending || draft.trim().length < 2}>
+            <CandyButton
+              type="submit"
+              tone="ink"
+              size="sm"
+              disabled={pending || draft.trim().length < 2}
+              loading={sending}
+              loadingText="Pathachhi..."
+            >
               <Send className="size-4" aria-hidden="true" />
-              {sending ? "Pathachhi..." : "Jiggesh kor"}
+              Jiggesh kor
             </CandyButton>
           </form>
           {error ? (

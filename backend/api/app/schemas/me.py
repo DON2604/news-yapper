@@ -72,6 +72,43 @@ class UserSyncIn(BaseModel):
     display_name: str | None = Field(default=None, max_length=120)
 
 
+class PasswordRegisterIn(BaseModel):
+    email: str = Field(min_length=3, max_length=240)
+    password: str = Field(min_length=8, max_length=128)
+    display_name: str | None = Field(default=None, max_length=120)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        return _normalize_email(value)
+
+
+class PasswordLoginIn(BaseModel):
+    email: str = Field(min_length=3, max_length=240)
+    password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        return _normalize_email(value)
+
+
+class PasswordAuthOut(BaseModel):
+    auth_provider_id: str
+    email: str
+    display_name: str
+
+
+def _normalize_email(value: str) -> str:
+    email = value.strip().lower()
+    if "@" not in email or email.startswith("@") or email.endswith("@") or " " in email:
+        raise ValueError("Enter a valid email")
+    local, _, domain = email.partition("@")
+    if not local or "." not in domain:
+        raise ValueError("Enter a valid email")
+    return email
+
+
 class UserSyncOut(BaseModel):
     user_id: uuid.UUID
     display_name: str

@@ -3,7 +3,7 @@
 import { Play, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CandyButton } from "@/components/design-system/CandyButton";
+import { CandyButton, Spinner } from "@/components/design-system/CandyButton";
 import { StickerBadge } from "@/components/design-system/StickerBadge";
 import { api } from "@/lib/client-api";
 import { cn } from "@/lib/cn";
@@ -55,7 +55,13 @@ export function AdminPanel({ overview, queue, jobs }: { overview: Overview; queu
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <CandyButton tone="punch" disabled={busy !== null} onClick={() => void act("ingest", "admin/ingestion/run")}>
+        <CandyButton
+          tone="punch"
+          disabled={busy !== null}
+          loading={busy === "ingest"}
+          loadingText="Requesting..."
+          onClick={() => void act("ingest", "admin/ingestion/run")}
+        >
           <Play className="size-4" aria-hidden="true" /> Run ingestion now
         </CandyButton>
         <CandyButton tone="paper" onClick={() => router.refresh()}>
@@ -151,11 +157,25 @@ export function AdminPanel({ overview, queue, jobs }: { overview: Overview; queu
                 <p className="text-xs text-ink-soft">Sources: {item.sources.map((s: any) => s.name).join(", ")}</p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {item.draft ? (
-                    <CandyButton tone="mint" size="sm" disabled={busy !== null} onClick={() => void act(`a-${item.event_id}`, `admin/events/${item.event_id}/approve`, { approve_questions: false })}>
+                    <CandyButton
+                      tone="mint"
+                      size="sm"
+                      disabled={busy !== null}
+                      loading={busy === `a-${item.event_id}`}
+                      loadingText="Publishing..."
+                      onClick={() => void act(`a-${item.event_id}`, `admin/events/${item.event_id}/approve`, { approve_questions: false })}
+                    >
                       Approve & publish
                     </CandyButton>
                   ) : null}
-                  <CandyButton tone="pink" size="sm" disabled={busy !== null} onClick={() => void act(`r-${item.event_id}`, `admin/events/${item.event_id}/reject`, { note: "rejected in admin desk" })}>
+                  <CandyButton
+                    tone="pink"
+                    size="sm"
+                    disabled={busy !== null}
+                    loading={busy === `r-${item.event_id}`}
+                    loadingText="Rejecting..."
+                    onClick={() => void act(`r-${item.event_id}`, `admin/events/${item.event_id}/reject`, { note: "rejected in admin desk" })}
+                  >
                     Reject
                   </CandyButton>
                 </div>
@@ -195,10 +215,15 @@ export function AdminPanel({ overview, queue, jobs }: { overview: Overview; queu
                       <button
                         type="button"
                         disabled={busy !== null}
+                        aria-busy={busy === `s-${s.slug}` || undefined}
                         onClick={() => void act(`s-${s.slug}`, `admin/sources/${s.slug}/toggle`, { enabled: !s.enabled })}
-                        className={cn("min-h-10 rounded-lg border-2 border-ink px-3 font-semibold", s.enabled ? "bg-mint" : "bg-cream")}
+                        className={cn(
+                          "inline-flex min-h-10 items-center gap-1.5 rounded-lg border-2 border-ink px-3 font-semibold",
+                          s.enabled ? "bg-mint" : "bg-cream",
+                        )}
                         aria-pressed={s.enabled}
                       >
+                        {busy === `s-${s.slug}` ? <Spinner className="size-4" /> : null}
                         {s.enabled ? "On" : "Off"}
                       </button>
                     )}
