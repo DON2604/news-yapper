@@ -8,7 +8,7 @@ test("core study loop works end to end", async ({ page }) => {
   test.setTimeout(240_000);
 
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /Aajke Ki Scene\? - home/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /News-Yapper - home/ })).toBeVisible();
   await expect(page.getByText(/DEMO edition/)).toBeVisible();
 
   await page.goto("/signin");

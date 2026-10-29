@@ -76,7 +76,7 @@ export function PreferencesForm({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "aajke-ki-scene-export.json";
+    a.download = "news-yapper-export.json";
     a.click();
     URL.revokeObjectURL(url);
   }

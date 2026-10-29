@@ -10,7 +10,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export const metadata: Metadata = {
-  title: { default: "Aajke Ki Scene? ☕", template: "%s · Aajke Ki Scene?" },
+  applicationName: "News-Yapper",
+  title: { default: "News-Yapper", template: "%s · News-Yapper" },
   description: "Duniya-r shob gossip, exam-er shob preparation. Banglish current affairs, daily quiz and a Brain Dump for exam aspirants.",
 };
 
