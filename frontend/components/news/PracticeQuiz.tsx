@@ -11,6 +11,7 @@ export function PracticeQuiz({ slug, count, signedIn }: { slug: string; count: n
   const [session, setSession] = useState<QuizSession | null>(null);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
 
   if (!count) return null;
   if (!signedIn) {
@@ -32,12 +33,17 @@ export function PracticeQuiz({ slug, count, signedIn }: { slug: string; count: n
     <div className="space-y-2">
       <CandyButton
         tone="punch"
+        loading={starting}
+        loadingText="Question ana hochhe..."
         onClick={async () => {
           setError(null);
+          setStarting(true);
           try {
             setSession(await api<QuizSession>("quizzes/sessions", { method: "POST", body: { type: "practice", article_slug: slug } }));
           } catch (err) {
             setError(err instanceof Error ? err.message : "Couldn't start practice.");
+          } finally {
+            setStarting(false);
           }
         }}
       >

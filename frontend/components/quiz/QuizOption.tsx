@@ -1,4 +1,5 @@
 import { Check, X } from "lucide-react";
+import { Spinner } from "@/components/design-system/CandyButton";
 import { cn } from "@/lib/cn";
 
 export type OptionState = "idle" | "correct" | "wrong" | "dimmed";
@@ -9,12 +10,14 @@ export function QuizOption({
   text,
   state,
   disabled,
+  checking = false,
   onSelect,
 }: {
   letter: string;
   text: string;
   state: OptionState;
   disabled: boolean;
+  checking?: boolean;
   onSelect: () => void;
 }) {
   return (
@@ -22,6 +25,7 @@ export function QuizOption({
       type="button"
       onClick={onSelect}
       disabled={disabled}
+      aria-busy={checking || undefined}
       aria-pressed={state === "correct" || state === "wrong"}
       className={cn(
         "group flex min-h-14 w-full items-center gap-3 rounded-2xl border-2 border-ink px-4 py-3 text-left text-base font-semibold transition-[transform,box-shadow,background-color] duration-150 sm:text-lg",
@@ -39,9 +43,18 @@ export function QuizOption({
         )}
         aria-hidden="true"
       >
-        {state === "correct" ? <Check className="size-5" /> : state === "wrong" ? <X className="size-5" /> : letter}
+        {checking ? (
+          <Spinner className="size-5" />
+        ) : state === "correct" ? (
+          <Check className="size-5" />
+        ) : state === "wrong" ? (
+          <X className="size-5" />
+        ) : (
+          letter
+        )}
       </span>
       <span className="flex-1">{text}</span>
+      {checking ? <span className="shrink-0 text-sm font-bold">Checking...</span> : null}
       {state === "correct" ? <span className="shrink-0 text-sm font-bold">Correct answer</span> : null}
       {state === "wrong" ? <span className="shrink-0 text-sm font-bold">Your answer</span> : null}
     </button>

@@ -3,6 +3,7 @@
 import { BookOpenCheck, Brain, Home, Newspaper, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LinkPending } from "@/components/design-system/LinkPending";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
@@ -31,11 +32,12 @@ export function DesktopNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-11 items-center rounded-xl border-2 px-3 font-display text-[0.95rem] font-bold transition-colors",
+                  "relative inline-flex min-h-11 items-center rounded-xl border-2 px-3 font-display text-[0.95rem] font-bold transition-colors",
                   active ? "border-ink bg-mango shadow-brutal-sm" : "border-transparent hover:border-ink hover:bg-paper",
                 )}
               >
                 {label}
+                <LinkPending />
               </Link>
             </li>
           );
@@ -69,7 +71,7 @@ export function MobileNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[0.7rem] font-bold",
+                  "relative flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[0.7rem] font-bold",
                   primary
                     ? "-mt-6 size-16 border-2 border-ink bg-punch shadow-brutal-sm"
                     : active
@@ -79,6 +81,7 @@ export function MobileNav() {
               >
                 <Icon className={primary ? "size-6" : "size-5"} aria-hidden="true" />
                 {label}
+                <LinkPending className="-top-1 -right-1" />
               </Link>
             </li>
           );

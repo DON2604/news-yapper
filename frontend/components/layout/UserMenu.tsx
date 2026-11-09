@@ -3,7 +3,25 @@
 import { LogOut, Settings, Shield, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { Spinner } from "@/components/design-system/CandyButton";
 import { cn } from "@/lib/cn";
+
+function LogoutButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      role="menuitem"
+      type="submit"
+      disabled={pending}
+      aria-busy={pending || undefined}
+      className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left font-semibold hover:bg-pink")}
+    >
+      {pending ? <Spinner className="size-4" /> : <LogOut className="size-4" aria-hidden="true" />}
+      {pending ? "Logging out..." : "Log out"}
+    </button>
+  );
+}
 
 export function UserMenu({ name, isAdmin, signOutAction }: { name: string; isAdmin: boolean; signOutAction: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
@@ -63,14 +81,7 @@ export function UserMenu({ name, isAdmin, signOutAction }: { name: string; isAdm
             </Link>
           ))}
           <form action={signOutAction}>
-            <button
-              role="menuitem"
-              type="submit"
-              className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left font-semibold hover:bg-pink")}
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              Log out
-            </button>
+            <LogoutButton />
           </form>
         </div>
       ) : null}

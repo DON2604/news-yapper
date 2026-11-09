@@ -21,7 +21,7 @@ const RATINGS: { outcome: Outcome; label: string; tone: "pink" | "mango" | "mint
 export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
   const [queue, setQueue] = useState(cards);
   const [flipped, setFlipped] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [rating, setRating] = useState<Outcome | null>(null);
   const [reviewed, setReviewed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const card = queue[0];
@@ -53,7 +53,7 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
   }
 
   async function rate(outcome: Outcome) {
-    setBusy(true);
+    setRating(outcome);
     setError(null);
     try {
       await api(`flashcards/${card.id}/reviews`, { method: "POST", body: { outcome } });
@@ -63,7 +63,7 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Rating save hoyni.");
     } finally {
-      setBusy(false);
+      setRating(null);
     }
   }
 
@@ -115,7 +115,15 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
       ) : null}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="How well did you remember?">
         {RATINGS.map((r) => (
-          <CandyButton key={r.outcome} tone={r.tone} disabled={busy || !flipped} onClick={() => void rate(r.outcome)} className="flex-col gap-0 py-2">
+          <CandyButton
+            key={r.outcome}
+            tone={r.tone}
+            disabled={rating !== null || !flipped}
+            loading={rating === r.outcome}
+            loadingText="Saving..."
+            onClick={() => void rate(r.outcome)}
+            className="flex-col gap-0 py-2"
+          >
             <span>{r.label}</span>
             <span className="text-xs font-semibold opacity-80">{intervalLabel(nextIntervalDays(card, r.outcome))}</span>
           </CandyButton>

@@ -132,6 +132,8 @@ class EventEvidence:
     sensitive: bool
     item_texts: dict[str, str]
     item_urls: dict[str, str]
+    # Event + publication dates the model was shown; years/days from them are not invented numbers.
+    known_dates: str = ""
 
     def text_for(self, ids: list[str]) -> str:
         return " ".join(self.item_texts.get(i, "") for i in ids)
@@ -193,7 +195,7 @@ def validate_news_batch(
                 flags.append("fact_with_unknown_source")
                 continue
             support = ev.text_for(refs)
-            missing = unsupported_numbers(fact.claim, support)
+            missing = unsupported_numbers(fact.claim, f"{support} {ev.known_dates}")
             if missing:
                 flags.append(f"unsupported_number:{','.join(sorted(missing))}")
             if overlap_ratio(fact.claim, support) < MIN_OVERLAP:
@@ -201,7 +203,7 @@ def validate_news_batch(
             facts.append({"claim": fact.claim, "source_item_ids": refs})
         if len(facts) < 2:
             flags.append("too_few_supported_facts")
-        missing_summary = unsupported_numbers(art.neutral_summary, ev.all_text)
+        missing_summary = unsupported_numbers(art.neutral_summary, f"{ev.all_text} {ev.known_dates}")
         if missing_summary:
             flags.append(f"summary_unsupported_number:{','.join(sorted(missing_summary))}")
         if art.published_event_date and art.published_event_date > today.isoformat():
@@ -226,7 +228,7 @@ def validate_news_batch(
                 numbers_in(answer) and numbers_in(answer) <= numbers_in(support)
             ):
                 q_flags.append("answer_not_in_evidence")
-            if unsupported_numbers(quiz.question, support):
+            if unsupported_numbers(quiz.question, f"{support} {ev.known_dates}"):
                 q_flags.append("question_unsupported_number")
             questions.append(
                 ValidatedQuestion(

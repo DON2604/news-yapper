@@ -207,8 +207,8 @@ function ComposerDialog({ onClose, onSaved, initial, editing }: Props) {
           <CandyButton tone="paper" onClick={onClose}>
             Cancel
           </CandyButton>
-          <CandyButton type="submit" tone="punch" disabled={saving}>
-            {saving ? "Saving..." : editing ? "Save changes" : "Stick it!"}
+          <CandyButton type="submit" tone="punch" loading={saving} loadingText="Saving...">
+            {editing ? "Save changes" : "Stick it!"}
           </CandyButton>
         </div>
       </form>

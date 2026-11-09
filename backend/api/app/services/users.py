@@ -7,7 +7,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.errors import ForbiddenError
+from app.errors import ConflictError, ForbiddenError, UnauthorizedError
 from app.models import (
     AIJob,
     ArticleSnapshot,
@@ -24,7 +24,8 @@ from app.models import (
     UserPreferences,
     utcnow,
 )
-from app.schemas.me import PreferencesIn, PreferencesOut, UserSyncIn
+from app.schemas.me import PasswordLoginIn, PasswordRegisterIn, PreferencesIn, PreferencesOut, UserSyncIn
+from app.security.passwords import hash_password, verify_password
 from app.security.sanitize import clean_text
 from app.services import audit
 
@@ -57,6 +58,41 @@ def sync_user(db: Session, payload: UserSyncIn) -> User:
     if should_be_admin and not user.is_admin:
         user.is_admin = True
         audit.record(db, "user.admin_granted", "user", user.id, actor_user_id=user.id, via="config")
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def register_with_password(db: Session, payload: PasswordRegisterIn) -> User:
+    provider_id = f"password:{payload.email}"
+    existing = db.scalar(select(User).where(User.auth_provider_id == provider_id))
+    if existing is not None:
+        raise ConflictError("An account with that email already exists.")
+    name = clean_text(payload.display_name, 120) or payload.email.split("@", 1)[0][:120]
+    user = User(
+        auth_provider_id=provider_id,
+        display_name=name,
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+    )
+    db.add(user)
+    db.flush()
+    db.add(UserPreferences(user_id=user.id, timezone=get_settings().app_timezone))
+    settings = get_settings()
+    if payload.email in settings.admin_email_set:
+        user.is_admin = True
+        audit.record(db, "user.admin_granted", "user", user.id, actor_user_id=user.id, via="config")
+    audit.record(db, "user.created", "user", user.id, actor_user_id=user.id, provider="password")
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def authenticate_password(db: Session, payload: PasswordLoginIn) -> User:
+    user = db.scalar(select(User).where(User.auth_provider_id == f"password:{payload.email}"))
+    if user is None or not verify_password(payload.password, user.password_hash):
+        raise UnauthorizedError("Email or password didn't match.")
+    user.last_seen_at = utcnow()
     db.commit()
     db.refresh(user)
     return user
@@ -121,7 +157,7 @@ def export_user_data(db: Session, user: User) -> dict[str, Any]:
             {
                 c.key: _jsonable(getattr(item, c.key))
                 for c in model.__mapper__.column_attrs
-                if c.key != "user_id"
+                if c.key not in {"user_id", "password_hash"}
             }
             for item in items
         ]

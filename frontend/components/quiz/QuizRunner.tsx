@@ -20,7 +20,8 @@ export function QuizRunner({ session, onComplete }: { session: QuizSession; onCo
   );
   const firstOpen = session.questions.findIndex((q) => !answers[q.id]);
   const [index, setIndex] = useState(firstOpen === -1 ? session.questions.length - 1 : firstOpen);
-  const [busy, setBusy] = useState(false);
+  const [checking, setChecking] = useState<number | null>(null);
+  const busy = checking !== null;
   const [error, setError] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
   const [lastMistake, setLastMistake] = useState(false);
@@ -48,7 +49,7 @@ export function QuizRunner({ session, onComplete }: { session: QuizSession; onCo
   const choose = useCallback(
     async (selected: number) => {
       if (!question || answer || busy) return;
-      setBusy(true);
+      setChecking(selected);
       setError(null);
       try {
         const res = await api<AnswerResult>(`quizzes/sessions/${session.id}/answers`, {
@@ -65,7 +66,7 @@ export function QuizRunner({ session, onComplete }: { session: QuizSession; onCo
       } catch (err) {
         setError(err instanceof Error ? err.message : "Answer save hoyni - abar try kor.");
       } finally {
-        setBusy(false);
+        setChecking(null);
       }
     },
     [question, answer, busy, session.id],
@@ -150,6 +151,7 @@ export function QuizRunner({ session, onComplete }: { session: QuizSession; onCo
               text={opt}
               state={states[i]}
               disabled={Boolean(answer) || busy}
+              checking={checking === i}
               onSelect={() => void choose(i)}
             />
           ))}

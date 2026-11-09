@@ -19,5 +19,9 @@ class ConflictError(DomainError):
     status_code = 409
 
 
+class UnauthorizedError(DomainError):
+    status_code = 401
+
+
 class InvalidInputError(DomainError):
     status_code = 422

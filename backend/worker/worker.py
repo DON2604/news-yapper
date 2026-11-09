@@ -5,6 +5,7 @@ uv run python -m worker tick                # one coordinator tick
 uv run python -m worker ingest [--source pib] [--allow-live]
 uv run python -m worker ai [--max-jobs 3]
 uv run python -m worker edition
+uv run python -m worker prep                # run tonight's overnight prep right now
 uv run python -m worker sync-models         # verify configured model IDs against provider listings
 uv run python -m worker status
 """
@@ -30,6 +31,7 @@ from pipeline.ai_orchestrator import AIOrchestrator, default_owner
 from pipeline.editions import build_edition
 from pipeline.generate import plan_news_jobs
 from pipeline.ingest import run_ingestion
+from pipeline.nightly import prep_due, run_nightly_prep
 from pipeline.quiz_rag import plan_quiz_jobs
 
 log = logging.getLogger("aks.worker")
@@ -132,7 +134,12 @@ class Coordinator:
         now = utcnow()
         report: dict[str, Any] = {}
         report["admin_ingestion_runs"] = process_requested_ingestion(self.settings)
-        if self.settings.enable_live_ingestion:
+        with SessionLocal() as db:
+            nightly_due = prep_due(db, self.settings, now)
+        if nightly_due:
+            report["nightly"] = run_nightly_prep(SessionLocal, self.settings, now)
+            self.last_edition = None
+        elif self.settings.enable_live_ingestion:
             summary = run_ingestion(SessionLocal, self.settings, only_due=True)
             report["ingested"] = summary.inserted
             if summary.outcomes:
@@ -144,7 +151,7 @@ class Coordinator:
         if self.last_edition is None or now - self.last_edition >= EDITION_EVERY or report["jobs"]:
             with SessionLocal() as db:
                 edition = build_edition(db, self.settings, now)
-            report["edition_items"] = len(edition.items) if edition is not None else 0
+                report["edition_items"] = len(edition.items) if edition is not None else 0
             self.last_edition = now
         return report
 
@@ -174,6 +181,7 @@ class Coordinator:
                         if any(
                             report.get(k)
                             for k in (
+                                "nightly",
                                 "ingested",
                                 "planned_news_jobs",
                                 "planned_quiz_jobs",
@@ -217,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
     ai = sub.add_parser("ai")
     ai.add_argument("--max-jobs", type=int, default=3)
     sub.add_parser("edition")
+    sub.add_parser("prep")
     sub.add_parser("sync-models")
     sub.add_parser("status")
     args = parser.parse_args(argv)
@@ -256,6 +265,13 @@ def main(argv: list[str] | None = None) -> int:
                 if edition
                 else "Nothing to publish"
             )
+        return 0
+    if args.command == "prep":
+        report = run_nightly_prep(SessionLocal, settings, utcnow())
+        with SessionLocal() as db:
+            edition = build_edition(db, settings)
+            report["edition_items"] = len(edition.items) if edition is not None else 0
+        print(json.dumps(report, default=str, indent=2))
         return 0
     if args.command == "sync-models":
         print(json.dumps(AIOrchestrator(SessionLocal, settings).sync_models(), indent=2))

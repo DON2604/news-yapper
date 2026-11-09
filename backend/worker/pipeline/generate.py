@@ -31,7 +31,6 @@ from pipeline.providers.base import GenerationResult
 from pipeline.validate import EventEvidence, NewsBatchOut, ValidatedArticle, validate_news_batch
 
 NEWS_PRIORITY = 70
-MIN_RELEVANCE = 35.0
 MAX_PER_TOPIC = 6
 BATCH_SIZE = 3
 FAILED_NOTE = "AI generation failed"
@@ -68,8 +67,8 @@ def plan_news_jobs(db: Session, settings: Settings, now: datetime | None = None)
         .where(
             Event.status == "discovered",
             Event.is_demo.is_(False),
-            Event.date >= today - timedelta(days=1),
-            Event.relevance_score >= MIN_RELEVANCE,
+            Event.date >= today - timedelta(days=settings.ai_news_lookback_days),
+            Event.relevance_score >= settings.ai_news_min_relevance,
             or_(Event.review_note.is_(None), Event.review_note.not_like(f"{FAILED_NOTE}%")),
         )
         .order_by(Event.relevance_score.desc())
@@ -90,22 +89,32 @@ def plan_news_jobs(db: Session, settings: Settings, now: datetime | None = None)
         ids = sorted(str(e.id) for e in batch)
         key = hashlib.sha256(",".join(ids).encode()).hexdigest()[:24]
         dedupe_key = f"news:{NEWS_PROMPT_VERSION}:{key}"
-        if db.scalar(select(AIJob.id).where(AIJob.dedupe_key == dedupe_key)) is not None:
+        existing = db.scalar(select(AIJob).where(AIJob.dedupe_key == dedupe_key))
+        if existing is not None and existing.status not in ("dead_letter", "failed"):
             continue
         estimate = estimate_tokens(*(e.title for e in batch)) + 400 * len(batch) + 1500
-        db.add(
-            AIJob(
-                kind="news_batch",
-                resource_type="event_batch",
-                payload={"event_ids": ids},
-                dedupe_key=dedupe_key,
-                priority=NEWS_PRIORITY,
-                status="queued",
-                max_attempts=settings.ai_max_job_attempts,
-                token_estimate=estimate,
-                next_run_at=now,
+        if existing is not None:
+            existing.status = "queued"
+            existing.attempts = 0
+            existing.max_attempts = settings.ai_max_job_attempts
+            existing.next_run_at = now
+            existing.error_code = None
+            existing.error_detail = None
+            existing.completed_at = None
+        else:
+            db.add(
+                AIJob(
+                    kind="news_batch",
+                    resource_type="event_batch",
+                    payload={"event_ids": ids},
+                    dedupe_key=dedupe_key,
+                    priority=NEWS_PRIORITY,
+                    status="queued",
+                    max_attempts=settings.ai_max_job_attempts,
+                    token_estimate=estimate,
+                    next_run_at=now,
+                )
             )
-        )
         for event in batch:
             event.status = "queued"
         created += 1
@@ -172,6 +181,10 @@ class NewsBatchHandler:
                 sensitive=event.sensitive,
                 item_texts={str(i.id): f"{i.original_title}. {i.short_excerpt or ''}" for i, _ in pairs},
                 item_urls={str(i.id): i.original_url for i, _ in pairs},
+                known_dates=" ".join(
+                    [event.date.isoformat()]
+                    + [i.published_at.date().isoformat() for i, _ in pairs if i.published_at]
+                ),
             )
         if not inputs:
             raise ResourceGone("No usable source evidence for these events")
@@ -212,7 +225,7 @@ def article_content_hash(evidence: EventEvidence, provider: str, model: str) -> 
         "facts": sorted(evidence.item_texts.items()),
         "prompt": NEWS_PROMPT_VERSION,
         "model": f"{provider}:{model}",
-        "tone": "banglish-medium",
+        "tone": "banglish-genz",
     }
     return hashlib.sha256(json.dumps(basis, sort_keys=True).encode()).hexdigest()
 

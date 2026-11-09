@@ -1,7 +1,8 @@
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { auth, demoMode, oauthProviders, signIn } from "@/auth";
-import { candyClasses } from "@/components/design-system/CandyButton";
+import { BackendError, registerAccount } from "@/lib/server/api";
+import { SubmitButton } from "@/components/design-system/SubmitButton";
 import { StickerBadge } from "@/components/design-system/StickerBadge";
 import { ArrowDoodle, Mascot, SparkleSticker } from "@/components/design-system/stickers";
 import { Tape } from "@/components/design-system/Tape";
@@ -37,6 +38,37 @@ export default async function SignInPage({
     await signIn(String(formData.get("provider")), { redirectTo: next });
   }
 
+  async function passwordLogin(formData: FormData) {
+    "use server";
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    try {
+      await signIn("password", { email, password, redirectTo: next });
+    } catch (error) {
+      if (error instanceof AuthError) redirect(`/signin?error=CredentialsSignin&callbackUrl=${encodeURIComponent(next)}`);
+      throw error;
+    }
+  }
+
+  async function passwordRegister(formData: FormData) {
+    "use server";
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const displayName = String(formData.get("name") ?? "");
+    try {
+      await registerAccount({ email, password, display_name: displayName });
+    } catch (error) {
+      const message = error instanceof BackendError ? error.message : "Could not create the account.";
+      redirect(`/signin?error=${encodeURIComponent(message)}&callbackUrl=${encodeURIComponent(next)}`);
+    }
+    try {
+      await signIn("password", { email, password, redirectTo: next });
+    } catch (error) {
+      if (error instanceof AuthError) redirect(`/signin?error=CredentialsSignin&callbackUrl=${encodeURIComponent(next)}`);
+      throw error;
+    }
+  }
+
   return (
     <div className="mx-auto grid max-w-5xl items-center gap-10 py-6 lg:grid-cols-2">
       <section className="relative space-y-5">
@@ -61,19 +93,93 @@ export default async function SignInPage({
         {params.error ? (
           <p role="alert" className="mb-4 rounded-xl border-2 border-ink bg-pink px-3 py-2 text-sm font-semibold">
             {params.error === "CredentialsSignin"
-              ? "Naam ta 2 letter-er beshi de."
-              : "Login hoyni. API cholchhe to? (npm run dev at the repo root)"}
+              ? "Email or password didn't match. Password needs at least 8 characters."
+              : params.error === "Configuration"
+                ? "Login hoyni. API cholchhe to? (npm run dev at the repo root)"
+                : params.error}
           </p>
         ) : null}
+
+        <form action={passwordLogin} className="space-y-4">
+          <h2 className="font-display text-2xl font-bold">Login</h2>
+          <p className="text-sm text-ink-soft">Email ar password. No extra verification step.</p>
+          <label className="flex flex-col gap-1 font-semibold">
+            Email
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="min-h-12 rounded-xl border-2 border-ink bg-cream px-3 text-lg font-normal"
+            />
+          </label>
+          <label className="flex flex-col gap-1 font-semibold">
+            Password
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="current-password"
+              className="min-h-12 rounded-xl border-2 border-ink bg-cream px-3 text-lg font-normal"
+            />
+          </label>
+          <SubmitButton tone="punch" size="lg" className="w-full" loadingText="Login korchhi...">
+            Login →
+          </SubmitButton>
+        </form>
+
+        <form action={passwordRegister} className="mt-6 space-y-4 border-t-2 border-dashed border-ink/30 pt-6">
+          <h2 className="font-display text-2xl font-bold">Notun account</h2>
+          <label className="flex flex-col gap-1 font-semibold">
+            Name
+            <input
+              name="name"
+              required
+              minLength={2}
+              maxLength={40}
+              autoComplete="nickname"
+              placeholder="Rimi"
+              className="min-h-12 rounded-xl border-2 border-ink bg-cream px-3 text-lg font-normal"
+            />
+          </label>
+          <label className="flex flex-col gap-1 font-semibold">
+            Email
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="min-h-12 rounded-xl border-2 border-ink bg-cream px-3 text-lg font-normal"
+            />
+          </label>
+          <label className="flex flex-col gap-1 font-semibold">
+            Password
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              maxLength={128}
+              autoComplete="new-password"
+              className="min-h-12 rounded-xl border-2 border-ink bg-cream px-3 text-lg font-normal"
+            />
+          </label>
+          <SubmitButton tone="mint" size="lg" className="w-full" loadingText="Account banachhi...">
+            Create account
+          </SubmitButton>
+        </form>
 
         {oauthProviders.length ? (
           <div className="space-y-3">
             {oauthProviders.map((p) => (
               <form key={p.id} action={oauthLogin}>
                 <input type="hidden" name="provider" value={p.id} />
-                <button type="submit" className={candyClasses("paper", "lg", "w-full")}>
+                <SubmitButton tone="paper" size="lg" className="w-full">
                   Continue with {p.name}
-                </button>
+                </SubmitButton>
               </form>
             ))}
           </div>
@@ -98,17 +204,12 @@ export default async function SignInPage({
                 className="min-h-12 rounded-xl border-2 border-ink bg-cream px-3 text-lg font-normal"
               />
             </label>
-            <button type="submit" className={candyClasses("punch", "lg", "mt-4 w-full")}>
+            <SubmitButton tone="punch" size="lg" className="mt-4 w-full" loadingText="Dhukchhi...">
               Start studying →
-            </button>
+            </SubmitButton>
           </form>
         ) : null}
 
-        {!demoMode && !oauthProviders.length ? (
-          <p className="text-ink-soft">
-            No sign-in method is configured. Set AUTH_GITHUB_ID/SECRET or AUTH_GOOGLE_ID/SECRET in .env.
-          </p>
-        ) : null}
       </section>
     </div>
   );

@@ -31,6 +31,9 @@ from pipeline.providers.base import (
 )
 
 DAILY_MARKERS = ("per day", "(rpd)", "(tpd)", "requests per day", "tokens per day")
+# gpt-oss reasoning tokens count against max_completion_tokens; at the default effort they
+# crowd out the JSON answer and the response is cut off.
+LOW_REASONING_PREFIXES = ("openai/gpt-oss",)
 
 
 def classify_error(response: httpx.Response) -> ProviderError:
@@ -80,7 +83,7 @@ class GroqProvider:
             system += "\n\nReturn ONLY a JSON object that validates against this JSON Schema:\n" + json.dumps(
                 request.json_schema, separators=(",", ":")
             )
-        body = {
+        body: dict[str, Any] = {
             "model": request.model,
             "messages": [
                 {"role": "system", "content": system},
@@ -90,6 +93,8 @@ class GroqProvider:
             "max_completion_tokens": request.max_output_tokens,
             "response_format": response_format,
         }
+        if request.model.startswith(LOW_REASONING_PREFIXES):
+            body["reasoning_effort"] = "low"
         url = f"{self.cfg.base_url.rstrip('/')}/chat/completions"
         try:
             response = self._client.post(url, json=body, headers=self._headers(), timeout=request.timeout_s)

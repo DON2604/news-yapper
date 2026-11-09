@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     demo_mode: bool = True
     enable_live_ingestion: bool = False
     ingestion_contact: str = ""
+    nightly_prep_enabled: bool = True
+    nightly_prep_hour: int = Field(default=2, ge=0, le=23)
 
     # Gemini
     enable_gemini: bool = False
@@ -92,6 +94,8 @@ class Settings(BaseSettings):
     ai_max_job_attempts: int = 4
     ai_auto_publish_validated: bool = True
     ai_daily_news_job_limit: int = 8
+    ai_news_min_relevance: float = 35.0
+    ai_news_lookback_days: int = Field(default=1, ge=0, le=14)
     ai_crunch_daily_share: float = 0.3
 
     # Crunch limits

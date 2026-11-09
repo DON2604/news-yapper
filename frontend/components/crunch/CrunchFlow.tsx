@@ -356,8 +356,16 @@ export function CrunchFlow({
             <p className="text-ink-soft">Calculating...</p>
           )}
           {error ? <p role="alert" className="rounded-xl border-2 border-ink bg-pink p-3 text-sm font-semibold">{error}</p> : null}
-          <CandyButton tone="punch" size="lg" className="w-full" disabled={submitting || !preview || !preview.within_budget} onClick={() => void crunch()}>
-            {submitting ? "Starting..." : `Crunch it ✨`}
+          <CandyButton
+            tone="punch"
+            size="lg"
+            className="w-full"
+            disabled={!preview || !preview.within_budget}
+            loading={submitting}
+            loadingText="Starting..."
+            onClick={() => void crunch()}
+          >
+            Crunch it ✨
           </CandyButton>
         </section>
       </aside>

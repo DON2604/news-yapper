@@ -2,7 +2,7 @@
 
 import { Check, ExternalLink, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { CandyButton } from "@/components/design-system/CandyButton";
+import { CandyButton, Spinner } from "@/components/design-system/CandyButton";
 import { StickerBadge } from "@/components/design-system/StickerBadge";
 import type { Mistake } from "@/lib/api-types";
 import { categoryMeta } from "@/lib/categories";
@@ -26,11 +26,12 @@ export function WrongAnswerCard({
   const [current, setCurrent] = useState(mistake);
   const [mode, setMode] = useState<"view" | "retry">("view");
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const busy = busyKey !== null;
   const meta = categoryMeta(current.topic);
 
   async function review(body: { action: "answer" | "snooze"; selected_index?: number }) {
-    setBusy(true);
+    setBusyKey(body.action === "snooze" ? "snooze" : `answer-${body.selected_index}`);
     try {
       const res = await api<{ mistake: Mistake; is_correct: boolean | null }>(`mistakes/${current.id}/review`, {
         method: "POST",
@@ -44,7 +45,7 @@ export function WrongAnswerCard({
     } catch (err) {
       setFeedback(err instanceof Error ? err.message : "Couldn't save.");
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   }
 
@@ -88,10 +89,16 @@ export function WrongAnswerCard({
               key={i}
               type="button"
               disabled={busy}
+              aria-busy={busyKey === `answer-${i}` || undefined}
               onClick={() => void review({ action: "answer", selected_index: i })}
               className="flex min-h-11 items-center gap-2 rounded-xl border-2 border-ink bg-paper px-3 text-left font-semibold hover:bg-mango"
             >
-              <span className="font-display font-bold">{LETTERS[i]}</span> {opt}
+              {busyKey === `answer-${i}` ? (
+                <Spinner className="size-4" />
+              ) : (
+                <span className="font-display font-bold">{LETTERS[i]}</span>
+              )}{" "}
+              {opt}
             </button>
           ))}
         </div>
@@ -127,7 +134,14 @@ export function WrongAnswerCard({
               Cancel
             </CandyButton>
           )}
-          <CandyButton tone="lavender" size="sm" onClick={() => void review({ action: "snooze" })} disabled={busy}>
+          <CandyButton
+            tone="lavender"
+            size="sm"
+            onClick={() => void review({ action: "snooze" })}
+            disabled={busy}
+            loading={busyKey === "snooze"}
+            loadingText="Saving..."
+          >
             Review tomorrow
           </CandyButton>
         </div>
