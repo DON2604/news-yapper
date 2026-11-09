@@ -1,4 +1,4 @@
-# Aajke Ki Scene? ☕
+# Aajke Ki Scene? ☕...
 
 **Duniya-r shob gossip, exam-er shob preparation.** A Banglish-first current-affairs and
 exam-prep web app: a source-checked daily edition, a personalised daily quiz with a
